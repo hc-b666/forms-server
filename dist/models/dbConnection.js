@@ -12,28 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const dbConnection_1 = __importDefault(require("./models/dbConnection"));
-const TestModel_1 = __importDefault(require("./models/TestModel"));
-const corsConfig = {
-    origin: ['http://localhost:5173', 'https://customizable-forms-client.vercel.app/'],
-    credentials: true,
-};
-const app = (0, express_1.default)();
-app.use((0, cors_1.default)(corsConfig));
-app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const mongoose_1 = __importDefault(require("mongoose"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const dbConnection = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const test = yield TestModel_1.default.create({ name: 'Test worked' });
-        res.json({ message: test });
+        const mongodb_url = process.env.MONGODB_URL;
+        if (!mongodb_url) {
+            throw new Error('MONGODB_URL is not defined in .env file');
+        }
+        yield mongoose_1.default.connect(mongodb_url, {});
     }
     catch (err) {
-        res.status(500).json({ message: 'Internal server err' });
+        console.log(err);
     }
-}));
-(0, dbConnection_1.default)().then(() => {
-    console.log('Connected to database');
-    app.listen(3000, () => {
-        console.log('Server is running on http://localhost:3000');
-    });
 });
+exports.default = dbConnection;
