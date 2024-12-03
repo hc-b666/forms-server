@@ -8,11 +8,12 @@ const cors_1 = __importDefault(require("cors"));
 const dbConnection_1 = __importDefault(require("./models/dbConnection"));
 const router_1 = __importDefault(require("./routes/router"));
 const corsConfig = {
-    origin: ['http://localhost:5173', 'https://customizable-forms-client.vercel.app/'],
+    origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
     credentials: true,
 };
 const app = (0, express_1.default)();
 (0, dbConnection_1.default)();
+app.use(express_1.default.json());
 app.use((0, cors_1.default)(corsConfig));
 app.use('/api/v1', router_1.default);
 app.listen(3000, () => {

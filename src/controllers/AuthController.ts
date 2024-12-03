@@ -1,10 +1,18 @@
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 
 import UserModel, { UserRole } from '../models/UserModel';
 import { createSecretToken } from '../utils/jwt';
 
-export const register = async (req: Request, res: Response) => {
+interface IRegisterBody {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+}
+
+export const register: RequestHandler<unknown, unknown, IRegisterBody, unknown> = async (req, res) => {
   try {
     const { firstName, lastName, username, email, password } = req.body;
     if (!firstName || !lastName || !username || !email || !password) {
@@ -38,7 +46,12 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+interface ILoginBody {
+  email: string;
+  password: string;
+}
+
+export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -57,6 +70,7 @@ export const login = async (req: Request, res: Response) => {
       id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
+      username: user.username,
       email: user.email,
       role: user.role,  
     };

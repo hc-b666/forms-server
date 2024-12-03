@@ -5,13 +5,15 @@ import dbConnection from './models/dbConnection';
 import router from './routes/router';
 
 const corsConfig = {
-  origin: ['http://localhost:5173', 'https://customizable-forms-client.vercel.app/'],
+  origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
   credentials: true,
 };
 
 const app = express();
 
 dbConnection();
+
+app.use(express.json());
 
 app.use(cors(corsConfig));
 
