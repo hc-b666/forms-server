@@ -21,7 +21,7 @@ const dbConnection = () => __awaiter(void 0, void 0, void 0, function* () {
         if (!mongodb_url) {
             throw new Error('MONGODB_URL is not defined in .env file');
         }
-        yield mongoose_1.default.connect(mongodb_url, {});
+        yield mongoose_1.default.connect(mongodb_url, {}).then(() => console.log('Connected to database'));
     }
     catch (err) {
         console.log(err);

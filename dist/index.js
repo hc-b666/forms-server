@@ -21,6 +21,7 @@ const corsConfig = {
     credentials: true,
 };
 const app = (0, express_1.default)();
+(0, dbConnection_1.default)();
 app.use((0, cors_1.default)(corsConfig));
 app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -31,9 +32,6 @@ app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: 'Internal server err' });
     }
 }));
-(0, dbConnection_1.default)().then(() => {
-    console.log('Connected to database');
-    app.listen(3000, () => {
-        console.log('Server is running on http://localhost:3000');
-    });
+app.listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
 });

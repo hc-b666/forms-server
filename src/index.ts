@@ -11,6 +11,8 @@ const corsConfig = {
 
 const app = express();
 
+dbConnection();
+
 app.use(cors(corsConfig));
 
 app.get('/', async (req, res) => {
@@ -22,10 +24,6 @@ app.get('/', async (req, res) => {
   }
 });
 
-dbConnection().then(() => {
-  console.log('Connected to database');
-
-  app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
-  });
+app.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000');
 });
