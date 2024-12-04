@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 
-enum Topic {
+export enum Topic {
   EDUCATION = 'education',
   QUIZ = 'quiz',
   OTHER = 'other',
@@ -11,7 +11,7 @@ const TemplateSchema = new Schema({
   description: { type: String, required: true },
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // FK
   topic: { type: String, enum: Object.values(Topic), required: true },
-  isPublic: { type: Boolean, default: false },
+  isPublic: { type: Boolean, required: true },
 });
 
 export default model('Template', TemplateSchema);

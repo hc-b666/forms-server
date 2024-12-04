@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Types } from 'mongoose';
 
 dotenv.config();
@@ -13,4 +13,29 @@ export const createSecretToken = (userId: Types.ObjectId, email: string) => {
   return jwt.sign({ userId, email }, token_key, {
     expiresIn: 60 * 60,
   });
+};
+
+interface JwtPayloadExtended extends JwtPayload {
+  userId?: string;
+  email?: string;
+  exp?: number;
+}
+
+export const verifySecretToken = (authHeader: string) => {
+  const token_key = process.env.TOKEN_KEY;
+  if (!token_key) {
+    throw new Error('TOKEN_KEY is not defined in .env file');
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    throw new Error('Unauthorized');
+  }
+
+  const decoded = jwt.verify(token, token_key) as JwtPayloadExtended;
+  if (!decoded.exp || Date.now() >= decoded.exp * 1000) {
+    throw new Error('Token expired');
+  }
+
+  return decoded;
 };
