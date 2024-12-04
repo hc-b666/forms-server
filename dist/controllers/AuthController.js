@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.register = void 0;
+exports.validateToken = exports.login = exports.register = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const UserModel_1 = __importStar(require("../models/UserModel"));
 const jwt_1 = require("../utils/jwt");
@@ -108,3 +108,42 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.login = login;
+const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { token, user } = req.body;
+        if (!token || !user) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        const decoded = (0, jwt_1.verifySecretToken)(token);
+        if (decoded.userId !== user.id || decoded.email !== user.email) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        const u = yield UserModel_1.default.findOne({ email: decoded.email });
+        if (!u) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        if (u.email !== user.email || u._id.toString() !== user.id || u.role !== user.role) {
+            res.status(403).json({ message: 'Unauhorized' });
+            return;
+        }
+        console.log('correct everything', u._id.toString(), user.id);
+        const tkn = (0, jwt_1.createSecretToken)(u._id, u.email);
+        const ures = {
+            id: u._id,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            username: u.username,
+            email: u.email,
+            role: u.role,
+        };
+        res.status(200).json({ token: tkn, user: ures });
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.validateToken = validateToken;

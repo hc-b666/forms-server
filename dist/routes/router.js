@@ -38,10 +38,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const AuthController = __importStar(require("../controllers/AuthController"));
+const TemplateController = __importStar(require("../controllers/TemplateController"));
+const AuthMiddleware_1 = require("../middlewares/AuthMiddleware");
 const router = express_1.default.Router();
 router.get('/', (req, res) => {
     res.json({ message: 'We got your request!' });
 });
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
+router.post('/auth/validate-token', AuthController.validateToken);
+router.get('/templates/top5', TemplateController.getTop5Templates);
+router.get('/templates/latest', TemplateController.latestTemplates);
+router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
+router.post('/templates/like', AuthMiddleware_1.authMiddleware, TemplateController.likeTemplate);
 exports.default = router;
