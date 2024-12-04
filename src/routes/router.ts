@@ -12,6 +12,7 @@ router.get('/', (req, res) => {
 
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
+router.post('/auth/validate-token', AuthController.validateToken);
 
 router.get('/templates/top5', TemplateController.getTop5Templates);
 router.get('/templates/latest', TemplateController.latestTemplates);

@@ -16,20 +16,15 @@ export const createSecretToken = (userId: Types.ObjectId, email: string) => {
 };
 
 interface JwtPayloadExtended extends JwtPayload {
-  userId?: string;
-  email?: string;
-  exp?: number;
+  userId: Types.ObjectId;
+  email: string;
+  exp: number;
 }
 
-export const verifySecretToken = (authHeader: string) => {
+export const verifySecretToken = (token: string) => {
   const token_key = process.env.TOKEN_KEY;
   if (!token_key) {
     throw new Error('TOKEN_KEY is not defined in .env file');
-  }
-
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    throw new Error('Unauthorized');
   }
 
   const decoded = jwt.verify(token, token_key) as JwtPayloadExtended;
@@ -38,4 +33,13 @@ export const verifySecretToken = (authHeader: string) => {
   }
 
   return decoded;
+}
+
+export const verifySecretTokenFromHeader = (authHeader: string) => {
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    throw new Error('Unauthorized');
+  }
+
+  return verifySecretToken(token);
 };

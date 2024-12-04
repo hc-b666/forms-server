@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { verifySecretToken } from '../utils/jwt';
+import { verifySecretTokenFromHeader } from '../utils/jwt';
 import { getErrorMessage } from '../utils/getErrorMessage';
 
 export const authMiddleware: RequestHandler = async (req, res, next) => {
@@ -10,7 +10,7 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    verifySecretToken(authHeader);
+    verifySecretTokenFromHeader(authHeader);
     
     next();
   } catch (err) {
