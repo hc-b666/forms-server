@@ -13,6 +13,9 @@ router.get('/', (req, res) => {
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
 
+router.get('/templates/top5', TemplateController.getTop5Templates);
+router.get('/templates/latest', TemplateController.latestTemplates);
 router.post('/templates/create', authMiddleware, TemplateController.createTemplate);
+router.post('/templates/like', authMiddleware, TemplateController.likeTemplate);
 
 export default router;
