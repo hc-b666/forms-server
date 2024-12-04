@@ -16,7 +16,7 @@ export const createSecretToken = (userId: Types.ObjectId, email: string) => {
 };
 
 interface JwtPayloadExtended extends JwtPayload {
-  userId: Types.ObjectId;
+  userId: string;
   email: string;
   exp: number;
 }

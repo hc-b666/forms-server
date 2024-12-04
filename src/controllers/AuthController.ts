@@ -86,13 +86,13 @@ export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = asyn
 interface IValidateToken {
   token: string;
   user: {
-    id: Types.ObjectId;
+    id: string;
     firstName: string;
     lastName: string;
     username: string;
     email: string;
     role: string;
-  }
+  };
 }
 
 export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unknown> = async (req, res) => {
@@ -115,10 +115,12 @@ export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unk
       return;
     }
 
-    if (u.email !== user.email || u._id !== user.id || u.role !== user.role) {
+    if (u.email !== user.email || u._id.toString() !== user.id || u.role !== user.role) {
       res.status(403).json({ message: 'Unauhorized' });
       return;
     }
+
+    console.log('correct everything', u._id.toString(), user.id)
     
     const tkn = createSecretToken(u._id, u.email);
     const ures = {
@@ -130,7 +132,7 @@ export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unk
       role: u.role,  
     };
 
-    res.status(200).json({ token, user: ures });
+    res.status(200).json({ token: tkn, user: ures });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: 'Internal server err' });
