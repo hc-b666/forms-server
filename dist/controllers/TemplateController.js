@@ -16,10 +16,12 @@ exports.latestTemplates = exports.likeTemplate = exports.getTop5Templates = expo
 const TemplateModel_1 = __importDefault(require("../models/TemplateModel"));
 const QuestionModel_1 = __importDefault(require("../models/QuestionModel"));
 const LikeModel_1 = __importDefault(require("../models/LikeModel"));
+const TagModel_1 = __importDefault(require("../models/TagModel"));
+const TemplateTagModel_1 = __importDefault(require("../models/TemplateTagModel"));
 // ToDo - Optimize
 const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { title, description, createdBy, topic, type, questions } = req.body;
+        const { title, description, createdBy, topic, type, questions, tags } = req.body;
         if (!title || !description || !createdBy || !topic || !type || questions.length === 0) {
             res.status(400).json({ message: 'All inputs are required for creating the template' });
             return;
@@ -43,7 +45,22 @@ const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 yield newQuestion.save();
             })));
         });
-        createQuestions();
+        yield createQuestions();
+        const createTags = () => __awaiter(void 0, void 0, void 0, function* () {
+            yield Promise.all(tags.map((tag) => __awaiter(void 0, void 0, void 0, function* () {
+                let tagDoc = yield TagModel_1.default.findOne({ name: tag.toLowerCase() });
+                if (!tagDoc) {
+                    tagDoc = new TagModel_1.default({ name: tag.toLowerCase() });
+                    yield tagDoc.save();
+                }
+                const templateTag = new TemplateTagModel_1.default({
+                    tagId: tagDoc._id,
+                    templateId: newTemplate._id,
+                });
+                yield templateTag.save();
+            })));
+        });
+        yield createTags();
         res.status(200).json({ message: 'Successfully created template' });
     }
     catch (err) {
@@ -55,7 +72,7 @@ exports.createTemplate = createTemplate;
 const getTop5Templates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const topTemplates = yield LikeModel_1.default.aggregate([
-            { $group: { _id: '$templateId', likeCount: { $sum: 0 } } },
+            { $group: { _id: '$templateId', likeCount: { $sum: 1 } } },
             { $sort: { likeCount: -1 } },
             { $limit: 5 },
             { $lookup: { from: 'templates', localField: 'templateId', foreignField: '_id', as: 'template' } },

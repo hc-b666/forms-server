@@ -129,7 +129,6 @@ const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(403).json({ message: 'Unauhorized' });
             return;
         }
-        console.log('correct everything', u._id.toString(), user.id);
         const tkn = (0, jwt_1.createSecretToken)(u._id, u.email);
         const ures = {
             id: u._id,
