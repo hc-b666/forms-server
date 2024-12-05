@@ -4,6 +4,8 @@ import { Schema } from 'mongoose';
 import TemplateModel, { Topic } from '../models/TemplateModel';
 import QuestionModel, { QuestionType } from '../models/QuestionModel';
 import LikeModel from '../models/LikeModel';
+import TagModel from '../models/TagModel';
+import TemplateTagModel from '../models/TemplateTagModel';
 
 interface ICreateTemplateBody {
   title: string;
@@ -16,12 +18,13 @@ interface ICreateTemplateBody {
     type: QuestionType;
     options: string[];
   }[];
+  tags: string[];
 }
 
 // ToDo - Optimize
 export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBody, unknown> = async (req, res) => {
   try {
-    const { title, description, createdBy, topic, type, questions } = req.body;
+    const { title, description, createdBy, topic, type, questions, tags } = req.body;
 
     if (!title || !description || !createdBy || !topic || !type || questions.length === 0) {
       res.status(400).json({ message: 'All inputs are required for creating the template' });
@@ -52,8 +55,25 @@ export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBod
         })
       );
     };
+    await createQuestions();
 
-    createQuestions();
+    const createTags = async () => {
+      await Promise.all(
+        tags.map(async (tag) => {
+          let tagDoc = await TagModel.findOne({ name: tag.toLowerCase() });
+          if (!tagDoc) {
+            tagDoc = new TagModel({ name: tag.toLowerCase() });
+            await tagDoc.save();
+          }
+          const templateTag = new TemplateTagModel({
+            tagId: tagDoc._id,
+            templateId: newTemplate._id,
+          });
+          await templateTag.save();
+        })
+      );
+    };
+    await createTags();
 
     res.status(200).json({ message: 'Successfully created template' });
   } catch (err) {
@@ -65,7 +85,7 @@ export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBod
 export const getTop5Templates: RequestHandler = async (req, res) => {
   try {
     const topTemplates = await LikeModel.aggregate([
-      { $group: { _id: '$templateId', likeCount: { $sum: 0 } } },
+      { $group: { _id: '$templateId', likeCount: { $sum: 1 } } },
       { $sort: { likeCount: -1 } },
       { $limit: 5 },
       { $lookup: { from: 'templates', localField: 'templateId', foreignField: '_id', as: 'template' } },

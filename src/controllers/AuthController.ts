@@ -119,8 +119,6 @@ export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unk
       res.status(403).json({ message: 'Unauhorized' });
       return;
     }
-
-    console.log('correct everything', u._id.toString(), user.id)
     
     const tkn = createSecretToken(u._id, u.email);
     const ures = {
