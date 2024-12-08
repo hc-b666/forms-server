@@ -1,11 +1,11 @@
 export const createTemplateQuery = `
 insert into "template" ("createdBy", "title", "description", "topic", "isPublic") 
 values ($1, $2, $3, $4, $5) 
-returning id;
+returning id
 `;
 
 export const getTop5Query = `
-select t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email", count(f.id) as "formsCount", array_agg(ta."tagName") as tags
+select t.id, t.title, t.topic, t."createdAt", u."email", count(f.id) as "formsCount", array_agg(ta."tagName") as tags
 from "template" t
 join "user" u on t."createdBy" = u.id
 left join "form" f on t.id = f."templateId"
@@ -14,11 +14,11 @@ join "tag" ta on tt."tagId" = ta.id
 where t."isPublic" = true
 group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
 order by count(f.id) desc
-limit 5;
+limit 5
 `;
 
 export const getLatestTemplatesQuery = `
-select t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email", array_agg(ta."tagName") as tags
+select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(ta."tagName") as tags
 from "template" t
 join "user" u on t."createdBy" = u.id
 join "templateTag" tt on t.id = tt."templateId"
@@ -26,6 +26,7 @@ join "tag" ta on tt."tagId" = ta.id
 where t."isPublic" = true
 group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
 order by t."createdAt" desc
+limit 10
 `;
 
 export const getTemplateByIdQuery = `

@@ -39,6 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const AuthController = __importStar(require("../controllers/AuthController"));
 const TemplateController = __importStar(require("../controllers/TemplateController"));
+const TagController = __importStar(require("../controllers/TagController"));
 const AuthMiddleware_1 = require("../middlewares/AuthMiddleware");
 const router = express_1.default.Router();
 router.get('/', (req, res) => {
@@ -51,4 +52,5 @@ router.get('/templates/top5', TemplateController.getTop5Templates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
 router.get('/templates/:id', TemplateController.getTemplateById);
 router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
+router.get('/tags', TagController.getTags);
 exports.default = router;
