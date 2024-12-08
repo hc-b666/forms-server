@@ -19,7 +19,8 @@ const authMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         return;
     }
     try {
-        (0, jwt_1.verifySecretTokenFromHeader)(authHeader);
+        const decoded = (0, jwt_1.verifySecretTokenFromHeader)(authHeader);
+        req.userId = decoded.userId;
         next();
     }
     catch (err) {

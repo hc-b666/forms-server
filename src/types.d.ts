@@ -1,3 +1,9 @@
+declare module 'express-serve-static-core' {
+  interface Request {
+    userId?: number;
+  }
+}
+
 declare global {
   interface IUser {
     id: number;
@@ -10,6 +16,10 @@ declare global {
     isBlocked: boolean;
     createdAt: Date;
   }
+
+  type QuestionType = 'short' | 'paragraph' | 'mcq' | 'checkbox';
+
+  type TemplateTopic = 'edu' | 'quiz' | 'other';
 }
 
 export {};

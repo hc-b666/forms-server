@@ -10,7 +10,9 @@ export const authMiddleware: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    verifySecretTokenFromHeader(authHeader);
+    const decoded = verifySecretTokenFromHeader(authHeader);
+
+    req.userId = decoded.userId;
     
     next();
   } catch (err) {

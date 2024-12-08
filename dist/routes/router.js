@@ -47,8 +47,8 @@ router.get('/', (req, res) => {
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
 router.post('/auth/validate-token', AuthController.validateToken);
-router.get('/templates/top5', TemplateController.getTop5Templates);
-router.get('/templates/latest', TemplateController.latestTemplates);
+// router.get('/templates/top5', TemplateController.getTop5Templates);
+// router.get('/templates/latest', TemplateController.latestTemplates);
 router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
-router.post('/templates/like', AuthMiddleware_1.authMiddleware, TemplateController.likeTemplate);
+// router.post('/templates/like', authMiddleware, TemplateController.likeTemplate);
 exports.default = router;
