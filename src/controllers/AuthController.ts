@@ -1,9 +1,9 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 
-import UserModel, { UserRole } from '../models/UserModel';
+import pool from '../models/postgresDb';
+import { createUser, getUser, userExists } from '../models/queries/userQuery';
 import { createSecretToken, verifySecretToken } from '../utils/jwt';
-import { Types } from 'mongoose';
 
 interface IRegisterBody {
   firstName: string;
@@ -21,24 +21,18 @@ export const register: RequestHandler<unknown, unknown, IRegisterBody, unknown> 
       return;
     }
 
-    const exists = await UserModel.findOne({ email });
-    if (exists) {
-      res.status(409).json({ message: 'User already exists with this email. Please login' });
+    const exists = await pool.query(userExists, [username, email]);
+    if (exists.rows.length > 0) {
+      res.status(409).json({ message: 'User already exists with this email or username. Please login' });
       return;
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    
-    const newUser = new UserModel({
-      firstName,
-      lastName,
-      username,
-      email,
-      passwordHash,
-      role: UserRole.USER, 
-    });
 
-    await newUser.save();
+    const newUser = { firstName, lastName, username, email, passwordHash, role: 'user' };
+    const values = [newUser.firstName, newUser.lastName, newUser.username, newUser.email, newUser.passwordHash, newUser.role];
+    
+    await pool.query(createUser, values); 
 
     res.status(200).json({ message: 'Successfully registered!' });
   } catch (err) {
@@ -60,20 +54,22 @@ export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = asyn
       return;
     }
 
-    const user = await UserModel.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+    const user = await pool.query(getUser, [email]);
+    if (user.rows.length === 0 || !(await bcrypt.compare(password, user.rows[0].passwordHash))) {
       res.status(400).json({ message: 'Invalid credentials' });
       return;
     }
 
-    const token = createSecretToken(user._id, user.email);
+    const u = user.rows[0] as IUser;
+
+    const token = createSecretToken(u.id, u.email);
     const ures = {
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username: user.username,
-      email: user.email,
-      role: user.role,  
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      username: u.username,
+      email: u.email,
+      role: u.role,  
     };
 
     res.status(200).json({ token, user: ures, message: 'Successfully logged in!' });
@@ -86,12 +82,12 @@ export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = asyn
 interface IValidateToken {
   token: string;
   user: {
-    id: string;
+    id: number;
     firstName: string;
     lastName: string;
     username: string;
     email: string;
-    role: string;
+    role: 'user' | 'admin';
   };
 }
 
@@ -109,25 +105,26 @@ export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unk
       return;
     }
 
-    const u = await UserModel.findOne({ email: decoded.email });
-    if (!u) {
+    const u = await pool.query(getUser, [decoded.email]);
+    if (u.rows.length === 0) {
       res.status(403).json({ message: 'Unauthorized' });
       return;
     }
 
-    if (u.email !== user.email || u._id.toString() !== user.id || u.role !== user.role) {
-      res.status(403).json({ message: 'Unauhorized' });
+    const us = u.rows[0] as IUser;
+    if (us.id !== user.id || us.email !== user.email || us.role !== user.role) {
+      res.status(403).json({ message: 'Unauthorized' });
       return;
     }
-    
-    const tkn = createSecretToken(u._id, u.email);
+
+    const tkn = createSecretToken(us.id, us.email);
     const ures = {
-      id: u._id,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      username: u.username,
-      email: u.email,
-      role: u.role,  
+      id: us.id,
+      firstName: us.firstName,
+      lastName: us.lastName,
+      username: us.username,
+      email: us.email,
+      role: us.role,  
     };
 
     res.status(200).json({ token: tkn, user: ures });

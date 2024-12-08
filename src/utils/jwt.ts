@@ -1,10 +1,9 @@
 import dotenv from 'dotenv';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { Types } from 'mongoose';
 
 dotenv.config();
 
-export const createSecretToken = (userId: Types.ObjectId, email: string) => {
+export const createSecretToken = (userId: number, email: string) => {
   const token_key = process.env.TOKEN_KEY;
   if (!token_key) {
     throw new Error('TOKEN_KEY is not defined in .env file');
@@ -16,7 +15,7 @@ export const createSecretToken = (userId: Types.ObjectId, email: string) => {
 };
 
 interface JwtPayloadExtended extends JwtPayload {
-  userId: string;
+  userId: number;
   email: string;
   exp: number;
 }

@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 
-import dbConnection from './models/dbConnection';
 import router from './routes/router';
 
 const corsConfig = {
@@ -10,8 +9,6 @@ const corsConfig = {
 };
 
 const app = express();
-
-dbConnection();
 
 app.use(express.json());
 
