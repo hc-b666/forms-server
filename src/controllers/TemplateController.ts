@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 
 import pool from '../models/postgresDb';
-import { createTemplateQuery } from "../models/queries/templateQuery";
+import { createTemplateQuery, getTop5Query, getLatestTemplatesQuery, getTemplateByIdQuery } from "../models/queries/templateQuery";
 import { createQuestionQuery } from '../models/queries/questionQuery';
 import { createTagQuery, createTemplateTagQuery, findTagQuery } from '../models/queries/tagQuery';
 
@@ -55,6 +55,42 @@ export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBod
     }
 
     res.status(200).json({ message: 'Successfully created template' });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const getTop5Templates: RequestHandler = async (req, res) => {
+  try {
+    const templates = await pool.query(getTop5Query);
+    res.status(200).json(templates.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const getLatestTemplates: RequestHandler = async (req, res) => {
+  try {
+    const templates = await pool.query(getLatestTemplatesQuery);
+    res.status(200).json(templates.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+interface IGetTemplateByIdParams {
+  id: string;
+}
+
+export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const template = await pool.query(getTemplateByIdQuery, [id]);
+
+    res.status(200).json(template.rows[0]);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: 'Internal server err' });
