@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createTemplate = void 0;
+exports.getTemplateById = exports.getLatestTemplates = exports.getTop5Templates = exports.createTemplate = void 0;
 const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
@@ -54,3 +54,37 @@ const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.createTemplate = createTemplate;
+const getTop5Templates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const templates = yield postgresDb_1.default.query(templateQuery_1.getTop5Query);
+        res.status(200).json(templates.rows);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.getTop5Templates = getTop5Templates;
+const getLatestTemplates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const templates = yield postgresDb_1.default.query(templateQuery_1.getLatestTemplatesQuery);
+        res.status(200).json(templates.rows);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.getLatestTemplates = getLatestTemplates;
+const getTemplateById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const template = yield postgresDb_1.default.query(templateQuery_1.getTemplateByIdQuery, [id]);
+        res.status(200).json(template.rows[0]);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.getTemplateById = getTemplateById;
