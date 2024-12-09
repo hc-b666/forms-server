@@ -7,7 +7,7 @@ values ($1, $2, $3, $4, $5)
 returning id
 `;
 exports.getTop5Query = `
-select t.id, t.title, t.topic, t."createdAt", u."email", count(f.id) as "formsCount", array_agg(ta."tagName") as tags
+select t.id, t.title, t.topic, t."createdAt", u."email", count(f.id) as "responses", array_agg(ta."tagName") as tags
 from "template" t
 join "user" u on t."createdBy" = u.id
 left join "form" f on t.id = f."templateId"
@@ -55,9 +55,10 @@ where t.id = $1
 group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
 `;
 exports.getTemplatesForUserQuery = `
-select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(distinct ta."tagName") as tags
+select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
 from "template" t
 join "user" u on t."createdBy" = u.id
+left join form f on t.id = f."templateId"
 join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
 where t."createdBy" = $1
