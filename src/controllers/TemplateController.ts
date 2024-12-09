@@ -4,6 +4,7 @@ import pool from '../models/postgresDb';
 import { createTemplateQuery, getTop5Query, getLatestTemplatesQuery, getTemplateByIdQuery, getTemplatesForUserQuery } from "../models/queries/templateQuery";
 import { createQuestionQuery } from '../models/queries/questionQuery';
 import { createTagQuery, createTemplateTagQuery, findTagQuery } from '../models/queries/tagQuery';
+import { getUserByIdQuery } from '../models/queries/userQuery';
 
 interface ICreateTemplateBody {
   title: string;
@@ -106,7 +107,8 @@ export const getTemplatesForUser: RequestHandler = async (req, res) => {
     }
 
     const templates = await pool.query(getTemplatesForUserQuery, [parseInt(userId)]);
-    res.status(200).json(templates.rows);
+    const user = await pool.query(getUserByIdQuery, [parseInt(userId)]);
+    res.status(200).json({ templates: templates.rows, user: user.rows[0] });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: 'Internal server err' });

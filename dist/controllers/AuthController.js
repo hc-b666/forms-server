@@ -48,7 +48,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(400).json({ message: 'All inputs are required for logging in' });
             return;
         }
-        const user = yield postgresDb_1.default.query(userQuery_1.getUser, [email]);
+        const user = yield postgresDb_1.default.query(userQuery_1.getUserQuery, [email]);
         if (user.rows.length === 0 || !(yield bcrypt_1.default.compare(password, user.rows[0].passwordHash))) {
             res.status(400).json({ message: 'Invalid credentials' });
             return;
@@ -83,7 +83,7 @@ const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(403).json({ message: 'Unauthorized' });
             return;
         }
-        const u = yield postgresDb_1.default.query(userQuery_1.getUser, [decoded.email]);
+        const u = yield postgresDb_1.default.query(userQuery_1.getUserQuery, [decoded.email]);
         if (u.rows.length === 0) {
             res.status(403).json({ message: 'Unauthorized' });
             return;

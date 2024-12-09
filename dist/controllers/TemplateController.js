@@ -17,6 +17,7 @@ const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
 const tagQuery_1 = require("../models/queries/tagQuery");
+const userQuery_1 = require("../models/queries/userQuery");
 const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { title, description, createdBy, topic, type, questions, tags } = req.body;
@@ -96,7 +97,8 @@ const getTemplatesForUser = (req, res) => __awaiter(void 0, void 0, void 0, func
             return;
         }
         const templates = yield postgresDb_1.default.query(templateQuery_1.getTemplatesForUserQuery, [parseInt(userId)]);
-        res.status(200).json(templates.rows);
+        const user = yield postgresDb_1.default.query(userQuery_1.getUserByIdQuery, [parseInt(userId)]);
+        res.status(200).json({ templates: templates.rows, user: user.rows[0] });
     }
     catch (err) {
         console.log(err);

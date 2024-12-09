@@ -30,12 +30,13 @@ order by t."createdAt" desc
 limit 10
 `;
 exports.getTemplateByIdQuery = `
-select t.id, 
+select t.id as "templateId", 
        t.title, 
        t.description, 
        t.topic, 
-       t."createdAt", 
-       u."email", 
+       t."createdAt",
+       u."email",
+       u."id" as "userId",
        array_agg(distinct ta."tagName") as tags, 
        array_agg(distinct jsonb_build_object('id', c.id, 
                                              'content', c.content, 
@@ -52,7 +53,7 @@ left join "comment" c on t.id = c."templateId"
 left join "user" u2 on c."userId" = u2.id
 left join "question" q on t.id = q."templateId"
 where t.id = $1
-group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
+group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email", u."id"
 `;
 exports.getTemplatesForUserQuery = `
 select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
@@ -63,4 +64,5 @@ join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
 where t."createdBy" = $1
 group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
+order by t."createdAt" desc
 `;

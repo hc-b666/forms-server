@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 
 import pool from '../models/postgresDb';
-import { createUser, getUser, userExists } from '../models/queries/userQuery';
+import { createUser, getUserQuery, userExists } from '../models/queries/userQuery';
 import { createSecretToken, verifySecretToken } from '../utils/jwt';
 
 interface IRegisterBody {
@@ -54,7 +54,7 @@ export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = asyn
       return;
     }
 
-    const user = await pool.query(getUser, [email]);
+    const user = await pool.query(getUserQuery, [email]);
     if (user.rows.length === 0 || !(await bcrypt.compare(password, user.rows[0].passwordHash))) {
       res.status(400).json({ message: 'Invalid credentials' });
       return;
@@ -105,7 +105,7 @@ export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unk
       return;
     }
 
-    const u = await pool.query(getUser, [decoded.email]);
+    const u = await pool.query(getUserQuery, [decoded.email]);
     if (u.rows.length === 0) {
       res.status(403).json({ message: 'Unauthorized' });
       return;
