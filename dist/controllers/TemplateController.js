@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTemplateById = exports.getLatestTemplates = exports.getTop5Templates = exports.createTemplate = void 0;
+exports.getTemplatesForUser = exports.getTemplateById = exports.getLatestTemplates = exports.getTop5Templates = exports.createTemplate = void 0;
 const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
@@ -88,3 +88,19 @@ const getTemplateById = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.getTemplateById = getTemplateById;
+const getTemplatesForUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params;
+        if (!userId) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        const templates = yield postgresDb_1.default.query(templateQuery_1.getTemplatesForUserQuery, [parseInt(userId)]);
+        res.status(200).json(templates.rows);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.getTemplatesForUser = getTemplatesForUser;

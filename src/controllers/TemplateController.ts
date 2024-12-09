@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 
 import pool from '../models/postgresDb';
-import { createTemplateQuery, getTop5Query, getLatestTemplatesQuery, getTemplateByIdQuery } from "../models/queries/templateQuery";
+import { createTemplateQuery, getTop5Query, getLatestTemplatesQuery, getTemplateByIdQuery, getTemplatesForUserQuery } from "../models/queries/templateQuery";
 import { createQuestionQuery } from '../models/queries/questionQuery';
 import { createTagQuery, createTemplateTagQuery, findTagQuery } from '../models/queries/tagQuery';
 
@@ -82,7 +82,7 @@ export const getLatestTemplates: RequestHandler = async (req, res) => {
 };
 
 interface IGetTemplateByIdParams {
-  id: string;
+  id: number;
 }
 
 export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (req, res) => {
@@ -96,3 +96,19 @@ export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (re
     res.status(500).json({ message: 'Internal server err' });
   }
 };
+
+export const getTemplatesForUser: RequestHandler = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const templates = await pool.query(getTemplatesForUserQuery, [parseInt(userId)]);
+    res.status(200).json(templates.rows);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+}; 

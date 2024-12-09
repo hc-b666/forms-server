@@ -52,5 +52,6 @@ router.get('/templates/top5', TemplateController.getTop5Templates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
 router.get('/templates/:id', TemplateController.getTemplateById);
 router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
+router.get('/templates/profile/:userId', AuthMiddleware_1.authMiddleware, TemplateController.getTemplatesForUser);
 router.get('/tags', TagController.getTags);
 exports.default = router;

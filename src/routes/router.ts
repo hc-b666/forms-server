@@ -19,6 +19,7 @@ router.get('/templates/top5', TemplateController.getTop5Templates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
 router.get('/templates/:id', TemplateController.getTemplateById);
 router.post('/templates/create', authMiddleware, TemplateController.createTemplate);
+router.get('/templates/profile/:userId', authMiddleware, TemplateController.getTemplatesForUser);
 
 router.get('/tags', TagController.getTags);
 
