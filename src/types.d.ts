@@ -37,6 +37,18 @@ declare global {
     username: string;
     email: string;
   }
+
+  interface ITopTemplate {
+    id: number;
+    title: string;
+    topic: string;
+    createdAt: string;
+    email: string;
+    responses: string;
+    tags: string[];
+    totalLikes: string;
+    hasLiked: boolean;
+  }
 }
 
 export {};

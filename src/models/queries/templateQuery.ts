@@ -6,18 +6,44 @@ values ($1, $2, $3, $4, $5)
 returning id
 `;
 
-export const getTop5Query = `
-select t.id, t.title, t.topic, t."createdAt", u."email", count(f.id) as "responses", array_agg(ta."tagName") as tags
+export const getTopTemplatesSql = `
+select 
+    t.id, 
+    t.title, 
+    t.topic, 
+    t."createdAt", 
+    u.email, 
+    count(f.id) as "responses", 
+    array_agg(ta."tagName") as tags,
+    count(distinct l."id") as "totalLikes",
+    case 
+        when $1::int is null then false
+        else exists (
+            select 1 
+            from "like" l2
+            where l2."templateId" = t.id and l2."userId" = $1::int
+        )
+    end as "hasLiked"
 from "template" t
 join "user" u on t."createdBy" = u.id
 left join "form" f on t.id = f."templateId"
 join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
+left join "like" l on l."templateId" = t.id
 where t."isPublic" = true
-group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
+group by t.id, t.title, t.topic, t."createdAt", u."email"
 order by count(f.id) desc
 limit 5
 `;
+export const getTopTemplatesQuery = async (userId: number | null) => {
+  try {
+    const { rows } = await pool.query(getTopTemplatesSql, [userId]) as { rows: ITopTemplate[] };
+    return rows;
+  } catch (err) {
+    console.error(`Error in getTopTemplatesQuery: ${err}`);
+    throw err;
+  }
+};
 
 export const getLatestTemplatesQuery = `
 select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(ta."tagName") as tags
@@ -79,18 +105,21 @@ export const getProfileTemplatesQuery = async (userId: number) => {
   }
 };
 
-const likeTemplateSql = `insert into like ("userId", "templateId") values ($1, $2)`;
+const likeTemplateSql = `insert into "like" ("userId", "templateId") values ($1, $2)`;
+const checkLikeTemplateSql = `select count(*) from "like" where "userId" = $1 and "templateId" = $2`;
 export const likeTemplateQuery = async (userId: number, templateId: number) => {
   try {
-    await pool.query(likeTemplateSql, [userId, templateId]);
+    const res = await pool.query(checkLikeTemplateSql, [userId, templateId]);
+    if (res.rows[0].count > 0) return;
 
+    await pool.query(likeTemplateSql, [userId, templateId]);
   } catch (err) {
     console.error(`Error in likeTemplateQuery: ${err}`);
     throw err;
   }
 };
 
-const unlikeTemplateSql = `delete from like where "userId" = $1 and "templateId" = $2`;
+const unlikeTemplateSql = `delete from "like" where "userId" = $1 and "templateId" = $2`;
 export const unlikeTemplateQuery = async (userId: number, templateId: number) => {
   try {
     await pool.query(unlikeTemplateSql, [userId, templateId]);

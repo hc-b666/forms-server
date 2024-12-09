@@ -12,25 +12,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getTop5Query = exports.createTemplateQuery = void 0;
+exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 exports.createTemplateQuery = `
 insert into "template" ("createdBy", "title", "description", "topic", "isPublic") 
 values ($1, $2, $3, $4, $5) 
 returning id
 `;
-exports.getTop5Query = `
-select t.id, t.title, t.topic, t."createdAt", u."email", count(f.id) as "responses", array_agg(ta."tagName") as tags
+exports.getTopTemplatesSql = `
+select 
+    t.id, 
+    t.title, 
+    t.topic, 
+    t."createdAt", 
+    u.email, 
+    count(f.id) as "responses", 
+    array_agg(ta."tagName") as tags,
+    count(distinct l."id") as "totalLikes",
+    case 
+        when $1::int is null then false
+        else exists (
+            select 1 
+            from "like" l2
+            where l2."templateId" = t.id and l2."userId" = $1::int
+        )
+    end as "hasLiked"
 from "template" t
 join "user" u on t."createdBy" = u.id
 left join "form" f on t.id = f."templateId"
 join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
+left join "like" l on l."templateId" = t.id
 where t."isPublic" = true
-group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
+group by t.id, t.title, t.topic, t."createdAt", u."email"
 order by count(f.id) desc
 limit 5
 `;
+const getTopTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(exports.getTopTemplatesSql, [userId]);
+        return rows;
+    }
+    catch (err) {
+        console.error(`Error in getTopTemplatesQuery: ${err}`);
+        throw err;
+    }
+});
+exports.getTopTemplatesQuery = getTopTemplatesQuery;
 exports.getLatestTemplatesQuery = `
 select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(ta."tagName") as tags
 from "template" t
@@ -90,9 +118,13 @@ const getProfileTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getProfileTemplatesQuery = getProfileTemplatesQuery;
-const likeTemplateSql = `insert into like ("userId", "templateId") values ($1, $2)`;
+const likeTemplateSql = `insert into "like" ("userId", "templateId") values ($1, $2)`;
+const checkLikeTemplateSql = `select count(*) from "like" where "userId" = $1 and "templateId" = $2`;
 const likeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const res = yield postgresDb_1.default.query(checkLikeTemplateSql, [userId, templateId]);
+        if (res.rows[0].count > 0)
+            return;
         yield postgresDb_1.default.query(likeTemplateSql, [userId, templateId]);
     }
     catch (err) {
@@ -101,7 +133,7 @@ const likeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, void
     }
 });
 exports.likeTemplateQuery = likeTemplateQuery;
-const unlikeTemplateSql = `delete from like where "userId" = $1 and "templateId" = $2`;
+const unlikeTemplateSql = `delete from "like" where "userId" = $1 and "templateId" = $2`;
 const unlikeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield postgresDb_1.default.query(unlikeTemplateSql, [userId, templateId]);

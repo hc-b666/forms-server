@@ -3,12 +3,12 @@ import { RequestHandler } from 'express';
 import pool from '../models/postgresDb';
 import { 
   createTemplateQuery, 
-  getTop5Query, 
   getLatestTemplatesQuery, 
   getTemplateByIdQuery, 
   likeTemplateQuery, 
   unlikeTemplateQuery, 
-  getProfileTemplatesQuery
+  getProfileTemplatesQuery,
+  getTopTemplatesQuery
 } from "../models/queries/templateQuery";
 import { createQuestionQuery } from '../models/queries/questionQuery';
 import { createTagQuery, createTemplateTagQuery, findTagQuery } from '../models/queries/tagQuery';
@@ -70,12 +70,14 @@ export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBod
   }
 };
 
-export const getTop5Templates: RequestHandler = async (req, res) => {
+export const getTopTemplates: RequestHandler = async (req, res) => {
   try {
-    const templates = await pool.query(getTop5Query);
-    res.status(200).json(templates.rows);
+    const userId = req.userId;
+
+    const templates = await getTopTemplatesQuery(userId ? userId : null);
+    res.status(200).json(templates);
   } catch (err) {
-    console.log(err);
+    console.log(`Error in getTopTemplates: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };
