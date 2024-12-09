@@ -7,19 +7,24 @@ import { authMiddleware } from '../middlewares/AuthMiddleware';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.json({ message: 'We got your request!' });
-});
-
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
 router.post('/auth/validate-token', AuthController.validateToken);
 
 router.get('/templates/top5', TemplateController.getTop5Templates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
+
 router.get('/templates/:id', TemplateController.getTemplateById);
+
+router.get('/templates/profile/:userId', authMiddleware, TemplateController.getProfile);
 router.post('/templates/create', authMiddleware, TemplateController.createTemplate);
-router.get('/templates/profile/:userId', authMiddleware, TemplateController.getTemplatesForUser);
+// router.patch('/templates/update/:templateId', authMiddleware, TemplateController.updateTemplate);
+// router.delete('/templates/delete/:templateId', authMiddleware, TemplateController.deleteTemplate);
+
+router.post('/templates/like/:templateId', authMiddleware, TemplateController.likeTemplate);
+router.post('/templates/unlike/:templateId', authMiddleware, TemplateController.unlikeTemplate);
+
+// router.post('/templates/comment/:templateId', authMiddleware, TemplateController.commentOnTemplate);
 
 router.get('/tags', TagController.getTags);
 

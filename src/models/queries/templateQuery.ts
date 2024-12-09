@@ -1,3 +1,5 @@
+import pool from '../postgresDb';
+
 export const createTemplateQuery = `
 insert into "template" ("createdBy", "title", "description", "topic", "isPublic") 
 values ($1, $2, $3, $4, $5) 
@@ -56,14 +58,45 @@ where t.id = $1
 group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email", u."id"
 `;
 
-export const getTemplatesForUserQuery = `
-select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
+const getProfileTemplatesSql = `
+select t.id as "templateId", t.title, t.topic, t."createdAt", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
 from "template" t
 join "user" u on t."createdBy" = u.id
-left join form f on t.id = f."templateId"
+left join "form" f on t.id = f."templateId"
 join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
 where t."createdBy" = $1
-group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
+group by t.id, t.title, t.topic, t."createdAt"
 order by t."createdAt" desc
 `;
+export const getProfileTemplatesQuery = async (userId: number) => {
+  try {
+    const { rows } = await pool.query(getProfileTemplatesSql, [userId]) as { rows: IProfileTemplate[] };
+    return rows;
+  } catch (err) {
+    console.error(`Error in getProfileQuery: ${err}`);
+    throw err;
+  }
+};
+
+const likeTemplateSql = `insert into like ("userId", "templateId") values ($1, $2)`;
+export const likeTemplateQuery = async (userId: number, templateId: number) => {
+  try {
+    await pool.query(likeTemplateSql, [userId, templateId]);
+
+  } catch (err) {
+    console.error(`Error in likeTemplateQuery: ${err}`);
+    throw err;
+  }
+};
+
+const unlikeTemplateSql = `delete from like where "userId" = $1 and "templateId" = $2`;
+export const unlikeTemplateQuery = async (userId: number, templateId: number) => {
+  try {
+    await pool.query(unlikeTemplateSql, [userId, templateId]);
+
+  } catch (err) {
+    console.error(`Error in unlikeTemplateQuery: ${err}`);
+    throw err;
+  }
+};

@@ -1,7 +1,15 @@
 import { RequestHandler } from 'express';
 
 import pool from '../models/postgresDb';
-import { createTemplateQuery, getTop5Query, getLatestTemplatesQuery, getTemplateByIdQuery, getTemplatesForUserQuery } from "../models/queries/templateQuery";
+import { 
+  createTemplateQuery, 
+  getTop5Query, 
+  getLatestTemplatesQuery, 
+  getTemplateByIdQuery, 
+  likeTemplateQuery, 
+  unlikeTemplateQuery, 
+  getProfileTemplatesQuery
+} from "../models/queries/templateQuery";
 import { createQuestionQuery } from '../models/queries/questionQuery';
 import { createTagQuery, createTemplateTagQuery, findTagQuery } from '../models/queries/tagQuery';
 import { getUserByIdQuery } from '../models/queries/userQuery';
@@ -98,7 +106,7 @@ export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (re
   }
 };
 
-export const getTemplatesForUser: RequestHandler = async (req, res) => {
+export const getProfile: RequestHandler = async (req, res) => {
   try {
     const { userId } = req.params;
     if (!userId) {
@@ -106,11 +114,58 @@ export const getTemplatesForUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    const templates = await pool.query(getTemplatesForUserQuery, [parseInt(userId)]);
-    const user = await pool.query(getUserByIdQuery, [parseInt(userId)]);
-    res.status(200).json({ templates: templates.rows, user: user.rows[0] });
+    const templates = await getProfileTemplatesQuery(parseInt(userId));
+    const user = await getUserByIdQuery(parseInt(userId));
+
+    res.status(200).json({ templates, user });
   } catch (err) {
-    console.log(err);
+    console.log(`Error in getProfile: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const likeTemplate: RequestHandler = async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    if (!templateId) {
+      res.status(400).json({ message: 'Template ID is required' });
+      return;
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    await likeTemplateQuery(userId, parseInt(templateId));
+
+    res.status(200).json({ message: 'Successfully liked template' });
+  } catch (err) {
+    console.log(`Error in likeTemplate: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const unlikeTemplate: RequestHandler = async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    if (!templateId) {
+      res.status(400).json({ message: 'Template ID is required' });
+      return;
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    await unlikeTemplateQuery(userId, parseInt(templateId));
+
+    res.status(200).json({ message: 'Successfully unliked template' });
+  } catch (err) {
+    console.log(`Error in unlikeTemplate: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

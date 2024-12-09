@@ -20,6 +20,23 @@ declare global {
   type QuestionType = 'short' | 'paragraph' | 'mcq' | 'checkbox';
 
   type TemplateTopic = 'edu' | 'quiz' | 'other';
+
+  interface IProfileTemplate {
+    templateId: number;
+    title: string;
+    topic: TemplateTopic;
+    createdAt: Date;
+    tags: string[];
+    responses: string;
+  }
+
+  interface IProfileUser {
+    id: number;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+  }
 }
 
 export {};

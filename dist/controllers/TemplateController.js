@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTemplatesForUser = exports.getTemplateById = exports.getLatestTemplates = exports.getTop5Templates = exports.createTemplate = void 0;
+exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTop5Templates = exports.createTemplate = void 0;
 const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
@@ -89,20 +89,62 @@ const getTemplateById = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.getTemplateById = getTemplateById;
-const getTemplatesForUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId } = req.params;
         if (!userId) {
             res.status(403).json({ message: 'Unauthorized' });
             return;
         }
-        const templates = yield postgresDb_1.default.query(templateQuery_1.getTemplatesForUserQuery, [parseInt(userId)]);
-        const user = yield postgresDb_1.default.query(userQuery_1.getUserByIdQuery, [parseInt(userId)]);
-        res.status(200).json({ templates: templates.rows, user: user.rows[0] });
+        const templates = yield (0, templateQuery_1.getProfileTemplatesQuery)(parseInt(userId));
+        const user = yield (0, userQuery_1.getUserByIdQuery)(parseInt(userId));
+        res.status(200).json({ templates, user });
     }
     catch (err) {
-        console.log(err);
+        console.log(`Error in getProfile: ${err}`);
         res.status(500).json({ message: 'Internal server err' });
     }
 });
-exports.getTemplatesForUser = getTemplatesForUser;
+exports.getProfile = getProfile;
+const likeTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { templateId } = req.params;
+        if (!templateId) {
+            res.status(400).json({ message: 'Template ID is required' });
+            return;
+        }
+        const userId = req.userId;
+        if (!userId) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        yield (0, templateQuery_1.likeTemplateQuery)(userId, parseInt(templateId));
+        res.status(200).json({ message: 'Successfully liked template' });
+    }
+    catch (err) {
+        console.log(`Error in likeTemplate: ${err}`);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.likeTemplate = likeTemplate;
+const unlikeTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { templateId } = req.params;
+        if (!templateId) {
+            res.status(400).json({ message: 'Template ID is required' });
+            return;
+        }
+        const userId = req.userId;
+        if (!userId) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        yield (0, templateQuery_1.unlikeTemplateQuery)(userId, parseInt(templateId));
+        res.status(200).json({ message: 'Successfully unliked template' });
+    }
+    catch (err) {
+        console.log(`Error in unlikeTemplate: ${err}`);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.unlikeTemplate = unlikeTemplate;

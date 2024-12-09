@@ -42,16 +42,18 @@ const TemplateController = __importStar(require("../controllers/TemplateControll
 const TagController = __importStar(require("../controllers/TagController"));
 const AuthMiddleware_1 = require("../middlewares/AuthMiddleware");
 const router = express_1.default.Router();
-router.get('/', (req, res) => {
-    res.json({ message: 'We got your request!' });
-});
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
 router.post('/auth/validate-token', AuthController.validateToken);
 router.get('/templates/top5', TemplateController.getTop5Templates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
 router.get('/templates/:id', TemplateController.getTemplateById);
+router.get('/templates/profile/:userId', AuthMiddleware_1.authMiddleware, TemplateController.getProfile);
 router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
-router.get('/templates/profile/:userId', AuthMiddleware_1.authMiddleware, TemplateController.getTemplatesForUser);
+// router.patch('/templates/update/:templateId', authMiddleware, TemplateController.updateTemplate);
+// router.delete('/templates/delete/:templateId', authMiddleware, TemplateController.deleteTemplate);
+router.post('/templates/like/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.likeTemplate);
+router.post('/templates/unlike/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.unlikeTemplate);
+// router.post('/templates/comment/:templateId', authMiddleware, TemplateController.commentOnTemplate);
 router.get('/tags', TagController.getTags);
 exports.default = router;
