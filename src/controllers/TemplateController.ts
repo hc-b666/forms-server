@@ -10,8 +10,8 @@ import {
   getProfileTemplatesQuery,
   getTopTemplatesQuery
 } from "../models/queries/templateQuery";
-import { createQuestionQuery } from '../models/queries/questionQuery';
-import { createTagQuery, createTemplateTagQuery, findTagQuery } from '../models/queries/tagQuery';
+import { createQuestionsQuery } from '../models/queries/questionQuery';
+import { createTagsQuery } from '../models/queries/tagQuery';
 import { getUserByIdQuery } from '../models/queries/userQuery';
 
 interface ICreateTemplateBody {
@@ -42,30 +42,15 @@ export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBod
       return;
     }
 
-    const templateRest = await pool.query(createTemplateQuery, [userId, title, description, topic, type === 'public' ? true : false]);
-    const templateId = templateRest.rows[0].id as number;
+    const templateId = await createTemplateQuery(userId, title, description, topic, type === 'public' ? true : false);
 
-    for (const q of questions) {
-      await pool.query(createQuestionQuery, [templateId, q.question, q.type, q.options]);
-    }
+    await createQuestionsQuery({ templateId, questions }); 
 
-    for (const tag of tags) {
-      let tagRes = await pool.query(findTagQuery, [tag]);
-      let tagId: number;
-
-      if (tagRes.rows.length === 0) {
-        tagRes = await pool.query(createTagQuery, [tag]);
-        tagId = tagRes.rows[0].id;
-      } else {
-        tagId = tagRes.rows[0].id;
-      }
-
-      await pool.query(createTemplateTagQuery, [templateId, tagId]);
-    }
+    await createTagsQuery({ templateId, tags });
 
     res.status(200).json({ message: 'Successfully created template' });
   } catch (err) {
-    console.log(err);
+    console.log(`Error in createTemplate: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };
@@ -103,7 +88,7 @@ export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (re
 
     res.status(200).json(template.rows[0]);
   } catch (err) {
-    console.log(err);
+    console.log(`Error in getTemplateById: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

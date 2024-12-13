@@ -30,27 +30,13 @@ const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(403).json({ message: 'Unauthorized' });
             return;
         }
-        const templateRest = yield postgresDb_1.default.query(templateQuery_1.createTemplateQuery, [userId, title, description, topic, type === 'public' ? true : false]);
-        const templateId = templateRest.rows[0].id;
-        for (const q of questions) {
-            yield postgresDb_1.default.query(questionQuery_1.createQuestionQuery, [templateId, q.question, q.type, q.options]);
-        }
-        for (const tag of tags) {
-            let tagRes = yield postgresDb_1.default.query(tagQuery_1.findTagQuery, [tag]);
-            let tagId;
-            if (tagRes.rows.length === 0) {
-                tagRes = yield postgresDb_1.default.query(tagQuery_1.createTagQuery, [tag]);
-                tagId = tagRes.rows[0].id;
-            }
-            else {
-                tagId = tagRes.rows[0].id;
-            }
-            yield postgresDb_1.default.query(tagQuery_1.createTemplateTagQuery, [templateId, tagId]);
-        }
+        const templateId = yield (0, templateQuery_1.createTemplateQuery)(userId, title, description, topic, type === 'public' ? true : false);
+        yield (0, questionQuery_1.createQuestionsQuery)({ templateId, questions });
+        yield (0, tagQuery_1.createTagsQuery)({ templateId, tags });
         res.status(200).json({ message: 'Successfully created template' });
     }
     catch (err) {
-        console.log(err);
+        console.log(`Error in createTemplate: ${err}`);
         res.status(500).json({ message: 'Internal server err' });
     }
 });
@@ -85,7 +71,7 @@ const getTemplateById = (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(200).json(template.rows[0]);
     }
     catch (err) {
-        console.log(err);
+        console.log(`Error in getTemplateById: ${err}`);
         res.status(500).json({ message: 'Internal server err' });
     }
 });

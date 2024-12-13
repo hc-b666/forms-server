@@ -14,11 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
-exports.createTemplateQuery = `
-insert into "template" ("createdBy", "title", "description", "topic", "isPublic") 
-values ($1, $2, $3, $4, $5) 
+const createTemplateSql = `
+insert into template ("createdBy", title, description, topic, "isPublic")
+values ($1, $2, $3, $4, $5)
 returning id
 `;
+const createTemplateQuery = (userId, title, description, topic, isPublic) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(createTemplateSql, [userId, title, description, topic, isPublic]);
+        return rows[0].id;
+    }
+    catch (err) {
+        console.error(`Error in createTemplateQuery: ${err}`);
+        throw err;
+    }
+});
+exports.createTemplateQuery = createTemplateQuery;
 exports.getTopTemplatesSql = `
 select 
     t.id, 
@@ -66,7 +77,7 @@ join "user" u on t."createdBy" = u.id
 join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
 where t."isPublic" = true
-group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email"
+group by t.id, t.title, t.topic, t."createdAt", u.email
 order by t."createdAt" desc
 limit 10
 `;
