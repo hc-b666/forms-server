@@ -13,6 +13,7 @@ import {
 import { createQuestionsQuery } from '../models/queries/questionQuery';
 import { createTagsQuery } from '../models/queries/tagQuery';
 import { getUserByIdQuery } from '../models/queries/userQuery';
+import { createFormQuery, hasUserSubmittedFormQuery } from '../models/queries/formQuery';
 
 interface ICreateTemplateBody {
   title: string;
@@ -27,7 +28,6 @@ interface ICreateTemplateBody {
   }[];
   tags: string[];
 }
-
 export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBody, unknown> = async (req, res) => {
   try {
     const { title, description, createdBy, topic, type, questions, tags } = req.body;
@@ -80,13 +80,13 @@ export const getLatestTemplates: RequestHandler = async (req, res) => {
 interface IGetTemplateByIdParams {
   id: number;
 }
-
 export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (req, res) => {
   try {
     const { id } = req.params;
-    const template = await pool.query(getTemplateByIdQuery, [id]);
+    
+    const template = await getTemplateByIdQuery(id);
 
-    res.status(200).json(template.rows[0]);
+    res.status(200).json(template);
   } catch (err) {
     console.log(`Error in getTemplateById: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
@@ -153,6 +153,67 @@ export const unlikeTemplate: RequestHandler = async (req, res) => {
     res.status(200).json({ message: 'Successfully unliked template' });
   } catch (err) {
     console.log(`Error in unlikeTemplate: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+interface ICreateFormParams {
+  templateId?: number;
+}
+interface ICreateFormBody {
+  responses: {
+    questionId: number;
+    answer: string | number | number[];
+  }[];
+}
+export const createForm: RequestHandler<ICreateFormParams, unknown, ICreateFormBody, unknown> = async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    if (!templateId) {
+      res.status(400).json({ message: 'Template ID is required' });
+      return;
+    }
+    
+    const userId = req.userId;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+    
+    const { responses } = req.body;
+    if (!responses || responses.length === 0) {
+      res.status(400).json({ message: 'Responses are required' });
+      return;
+    }
+
+    await createFormQuery({ filledBy: userId, templateId: templateId, responses });
+
+    res.status(200).json({ message: 'Successfully submitted!' });
+  } catch (err) {
+    console.log(`Error in createForm: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const hasUserSubmittedForm: RequestHandler = async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    if (!templateId) {
+      res.status(400).json({ message: 'Template ID is required' });
+      return;
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const hasSubmitted = await hasUserSubmittedFormQuery(userId, parseInt(templateId));
+
+    res.status(200).json({ hasSubmitted });
+  } catch (err) {
+    console.log(`Error in hasUserSubmittedForm: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

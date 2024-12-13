@@ -15,13 +15,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createQuestionsQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 const createQuestionSql = `
-insert into question ("templateId", question, type, options)
-values ($1, $2, $3, $4)
+insert into question ("templateId", question, type)
+values ($1, $2, $3)
+returning id
+`;
+const createQuestionOptionSql = `
+insert into "questionOption" ("questionId", option)
+values ($1, $2)
 `;
 const createQuestionsQuery = (_a) => __awaiter(void 0, [_a], void 0, function* ({ templateId, questions }) {
     try {
         for (const q of questions) {
-            yield postgresDb_1.default.query(createQuestionSql, [templateId, q.question, q.type, q.options]);
+            const res = yield postgresDb_1.default.query(createQuestionSql, [templateId, q.question, q.type]);
+            const questionId = res.rows[0].id;
+            if (q.type === 'mcq' || q.type === 'checkbox') {
+                for (const option of q.options) {
+                    yield postgresDb_1.default.query(createQuestionOptionSql, [questionId, option]);
+                }
+            }
         }
     }
     catch (err) {

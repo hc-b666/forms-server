@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
+exports.hasUserSubmittedForm = exports.createForm = exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
 const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
 const tagQuery_1 = require("../models/queries/tagQuery");
 const userQuery_1 = require("../models/queries/userQuery");
+const formQuery_1 = require("../models/queries/formQuery");
 const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { title, description, createdBy, topic, type, questions, tags } = req.body;
@@ -67,8 +68,8 @@ exports.getLatestTemplates = getLatestTemplates;
 const getTemplateById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const template = yield postgresDb_1.default.query(templateQuery_1.getTemplateByIdQuery, [id]);
-        res.status(200).json(template.rows[0]);
+        const template = yield (0, templateQuery_1.getTemplateByIdQuery)(id);
+        res.status(200).json(template);
     }
     catch (err) {
         console.log(`Error in getTemplateById: ${err}`);
@@ -135,3 +136,50 @@ const unlikeTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.unlikeTemplate = unlikeTemplate;
+const createForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { templateId } = req.params;
+        if (!templateId) {
+            res.status(400).json({ message: 'Template ID is required' });
+            return;
+        }
+        const userId = req.userId;
+        if (!userId) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        const { responses } = req.body;
+        if (!responses || responses.length === 0) {
+            res.status(400).json({ message: 'Responses are required' });
+            return;
+        }
+        yield (0, formQuery_1.createFormQuery)({ filledBy: userId, templateId: templateId, responses });
+        res.status(200).json({ message: 'Successfully submitted!' });
+    }
+    catch (err) {
+        console.log(`Error in createForm: ${err}`);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.createForm = createForm;
+const hasUserSubmittedForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { templateId } = req.params;
+        if (!templateId) {
+            res.status(400).json({ message: 'Template ID is required' });
+            return;
+        }
+        const userId = req.userId;
+        if (!userId) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        const hasSubmitted = yield (0, formQuery_1.hasUserSubmittedFormQuery)(userId, parseInt(templateId));
+        res.status(200).json({ hasSubmitted });
+    }
+    catch (err) {
+        console.log(`Error in hasUserSubmittedForm: ${err}`);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.hasUserSubmittedForm = hasUserSubmittedForm;

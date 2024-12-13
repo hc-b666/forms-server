@@ -1,4 +1,4 @@
-drop table if exists "response", "form", "question", "template", "user", "accessControl", "like", "comment", "tag", "templateTag" cascade;
+drop table if exists "response", "form", "question", "questionOption", "template", "user", "accessControl", "like", "comment", "tag", "templateTag" cascade;
 
 create table "user" (
   "id" serial primary key,
@@ -26,8 +26,13 @@ create table "question" (
   "id" serial primary key,
   "templateId" int not null references "template"(id),
   "question" text not null,
-  "type" varchar(50) check ("type" in ('short', 'paragraph', 'mcq', 'checkbox')) not null,
-  "options" text[]
+  "type" varchar(50) check ("type" in ('short', 'paragraph', 'mcq', 'checkbox')) not null
+);
+
+create table "questionOption" (
+  "id" serial primary key,
+  "questionId" int not null references "question"(id),
+  "option" text not null
 );
 
 create table "form" (
@@ -41,7 +46,8 @@ create table "response" (
   "id" serial primary key,
   "formId" int not null references "form"(id),
   "questionId" int not null references "question"(id),
-  "answer" text not null
+  "answer" text,
+  "optionId" int references "questionOption"(id)
 );
 
 create table "accessControl" (

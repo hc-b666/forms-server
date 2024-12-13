@@ -28,4 +28,7 @@ router.post('/templates/unlike/:templateId', authMiddleware, TemplateController.
 
 router.get('/tags', TagController.getTags);
 
+router.post('/forms/submit/:templateId', authMiddleware, TemplateController.createForm);
+router.post('/forms/check/:templateId', authMiddleware, TemplateController.hasUserSubmittedForm);
+
 export default router;

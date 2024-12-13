@@ -81,32 +81,60 @@ group by t.id, t.title, t.topic, t."createdAt", u.email
 order by t."createdAt" desc
 limit 10
 `;
-exports.getTemplateByIdQuery = `
-select t.id as "templateId", 
-       t.title, 
-       t.description, 
-       t.topic, 
-       t."createdAt",
-       u."email",
-       u."id" as "userId",
-       array_agg(distinct ta."tagName") as tags, 
-       array_agg(distinct jsonb_build_object('id', c.id, 
-                                             'content', c.content, 
-                                             'createdAt', c."createdAt", 
-                                             'user', jsonb_build_object('id', u2.id, 
-                                                                        'email', u2.email)) 
-                 ) FILTER (WHERE c.id IS NOT NULL) as comments,
-       array_agg(distinct jsonb_build_object('id', q.id, 'question', q.question, 'type', q.type, 'options', q.options)) as questions
+const getTemplateByIdSql = `
+select t.id as "templateId", t.title, t.description, t.topic, t."createdAt", u.id as "userId", u.email 
 from "template" t
 join "user" u on t."createdBy" = u.id
+where t.id = $1
+`;
+const getTemplateTagsSql = `
+select ta."tagName"
+from "template" t
 join "templateTag" tt on t.id = tt."templateId"
 join "tag" ta on tt."tagId" = ta.id
-left join "comment" c on t.id = c."templateId"
-left join "user" u2 on c."userId" = u2.id
-left join "question" q on t.id = q."templateId"
 where t.id = $1
-group by t.id, t.title, t.description, t.topic, t."isPublic", t."createdAt", u."firstName", u."lastName", u."email", u."id"
 `;
+const getTemplateQuestionsSql = `
+select q.id, q.question, q.type
+from "template" t
+join "question" q on t.id = q."templateId"
+where t.id = $1
+`;
+const getQuestionOptionsSql = `
+select qo.id, qo.option
+from "questionOption" qo
+where qo."questionId" = $1
+`;
+const getTemplateCommentsSql = `
+select c.id as "commentId", c.content, c."createdAt", u.id as "authorId", u.email
+from "template" t
+join "comment" c on t.id = c."templateId"
+join "user" u on c."userId" = u.id
+where t.id = $1
+`;
+const getTemplateByIdQuery = (templateId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const getTemplateRes = yield postgresDb_1.default.query(getTemplateByIdSql, [templateId]);
+        const template = getTemplateRes.rows[0];
+        const getTagsRes = yield postgresDb_1.default.query(getTemplateTagsSql, [templateId]);
+        template.tags = getTagsRes.rows.map(row => row.tagName);
+        const getQuestionsRes = yield postgresDb_1.default.query(getTemplateQuestionsSql, [templateId]);
+        template.questions = [];
+        for (const question of getQuestionsRes.rows) {
+            const getOptionsRes = yield postgresDb_1.default.query(getQuestionOptionsSql, [question.id]);
+            question.options = getOptionsRes.rows;
+            template.questions.push(question);
+        }
+        const getCommentsRes = yield postgresDb_1.default.query(getTemplateCommentsSql, [templateId]);
+        template.comments = getCommentsRes.rows;
+        return template;
+    }
+    catch (err) {
+        console.error(`Error in getTemplateByIdQuery: ${err}`);
+        throw err;
+    }
+});
+exports.getTemplateByIdQuery = getTemplateByIdQuery;
 const getProfileTemplatesSql = `
 select t.id as "templateId", t.title, t.topic, t."createdAt", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
 from "template" t

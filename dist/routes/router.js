@@ -56,4 +56,6 @@ router.post('/templates/like/:templateId', AuthMiddleware_1.authMiddleware, Temp
 router.post('/templates/unlike/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.unlikeTemplate);
 // router.post('/templates/comment/:templateId', authMiddleware, TemplateController.commentOnTemplate);
 router.get('/tags', TagController.getTags);
+router.post('/forms/submit/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.createForm);
+router.post('/forms/check/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.hasUserSubmittedForm);
 exports.default = router;

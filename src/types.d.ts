@@ -49,6 +49,39 @@ declare global {
     totalLikes: string;
     hasLiked: boolean;
   }
+
+  interface IQuestionOption {
+    id: number;
+    option: string;
+  }
+
+  interface IQuestion {
+    id: number;
+    question: string;
+    type: string;
+    options: IQuestionOption[];
+  }
+
+  interface IComment {
+    commentId: number;
+    content: string;
+    createdAt: string;
+    authorId: number;
+    email: string;
+  }
+
+  interface ISingleTemplate {
+    templateId: number;
+    title: string;
+    description: string;
+    topic: string;
+    createdAt: string;
+    userId: number;
+    email: string;
+    tags: string[];
+    questions: IQuestion[];
+    comments: IComment[];
+  }
 }
 
 export {};
