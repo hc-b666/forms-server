@@ -1,6 +1,7 @@
 declare module 'express-serve-static-core' {
   interface Request {
     userId?: number;
+    templateId?: number;
   }
 }
 
@@ -81,6 +82,18 @@ declare global {
     tags: string[];
     questions: IQuestion[];
     comments: IComment[];
+  }
+
+  interface IResponse {
+    responseId: number;
+    questionId: number;
+    answer: string;
+    optionId: number | null;
+
+    question: string;
+    questionType: QuestionType;
+    questionOptionId: number | null;
+    questionOptionText: string | null;
   }
 }
 

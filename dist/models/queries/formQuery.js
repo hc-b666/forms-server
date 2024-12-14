@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFormsQuery = exports.checkIfUserIsAuthorOfTemplateQuery = exports.hasUserSubmittedFormQuery = exports.createFormQuery = void 0;
+exports.getFormsQuery = exports.getFormQuery = exports.checkIfUserIsAuthorOfTemplateQuery = exports.hasUserSubmittedFormQuery = exports.createFormQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 const createFormSql = `
 insert into form ("filledBy", "templateId") 
@@ -83,31 +83,104 @@ const checkIfUserIsAuthorOfTemplateQuery = (templateId, userId) => __awaiter(voi
     }
 });
 exports.checkIfUserIsAuthorOfTemplateQuery = checkIfUserIsAuthorOfTemplateQuery;
-const getFormsSql = `
+const getFormSql = `
 select 
-  f.id as "formId", 
-  f."filledBy", 
-  f."filledAt", 
-  t.title as "templateTitle",
-  (select json_agg(
-    json_build_object(
-      'questionId', q.id,
-      'question', q.question,
-      'answer', r.answer,
-      'optionId', r."optionId",
-      'option', qo.option,
-      'questionType', q.type
-    )
-  )
-  from response r
-  join question q on r."questionId" = q.id
-  left join "questionOption" qo on r."optionId" = qo.id
-  where r."formId" = f.id
-  ) as responses
+  r.id as "responseId",
+  r."questionId",
+  r.answer,
+  r."optionId",
+  
+  q.question,
+  q.type as "questionType",
+  
+  qo.id as "questionOptionId",
+  qo.option as "questionOptionText"
+
+from response r
+join question q on r."questionId" = q.id
+left join "questionOption" qo on r."optionId" = qo.id
+where r."formId" = $1
+`;
+// const getFormSql = `
+// with checkbox_responses as (
+//   select 
+//     r."questionId",
+//     jsonb_build_object('optionId', qo.id, 'option', qo.option) as "selectedOptions"
+//   from response r
+//   join question q on r."questionId" = q.id
+//   join "questionOption" qo on r."optionId" = qo.id
+//   where r."formId" = $1 and q.type = 'checkbox'
+//   group by r."questionId", qo.id
+// ),
+// all_responses as (
+//   select
+//     r.id as "responseId",
+//     r."questionId",
+//     r.answer,
+//     r."optionId",
+//     q.id as "questionId",
+//     q.question,
+//     q.type as "questionType",
+//     qo.id as "questionOptionId",
+//     qo.option as "questionOptionText"
+//   from response r
+//   join question q on r."questionId" = q.id
+//   left join "questionOption" qo on r."optionId" = qo.id
+//   where r."formId" = $1
+// )
+// select ar.*, coalesce(cr."selectedOptions", '[]'::jsonb) as "selectedOptions"
+// from all_responses ar
+// left join checkbox_responses cr on ar."questionId" = cr."questionId"
+// order by ar."questionId"
+// `;
+const getFormQuery = (formId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(getFormSql, [formId]);
+        const responses = [];
+        rows.forEach((response) => {
+            const responseIndex = responses.findIndex((r) => r.questionId === response.questionId);
+            if (responseIndex === -1) {
+                responses.push({
+                    questionId: response.questionId,
+                    question: response.question,
+                    questionType: response.questionType,
+                    selectedOptions: response.questionType === 'checkbox' ? [] : null,
+                    responseId: response.responseId,
+                    answer: response.answer,
+                    options: response.questionType === 'checkbox' ? [] : null,
+                });
+            }
+            else {
+                if (response.questionType === 'checkbox') {
+                    responses[responseIndex].selectedOptions.push({
+                        optionId: response.questionOptionId,
+                        option: response.questionOptionText,
+                    });
+                }
+                else {
+                    responses[responseIndex].answer = response.answer;
+                }
+            }
+        });
+        return { rows, responses };
+    }
+    catch (err) {
+        console.error(`Error in getFormQuery: ${err}`);
+        throw err;
+    }
+});
+exports.getFormQuery = getFormQuery;
+const getFormsSql = `
+select
+  f.id as "formId",
+  f."filledBy",
+  u.email,
+  f."filledAt"
 from form f
 join template t on f."templateId" = t.id
+join "user" u on f."filledBy" = u.id
 where f."templateId" = $1
-order by f.id
+order by f."filledAt" desc
 `;
 const getFormsQuery = (templateId) => __awaiter(void 0, void 0, void 0, function* () {
     try {

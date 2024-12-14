@@ -91,6 +91,7 @@ interface IValidateToken {
   };
 }
 
+// ToDo
 export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unknown> = async (req, res) => {
   try {
     const { token, user } = req.body;

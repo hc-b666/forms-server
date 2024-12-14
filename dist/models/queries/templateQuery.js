@@ -136,15 +136,24 @@ const getTemplateByIdQuery = (templateId) => __awaiter(void 0, void 0, void 0, f
 });
 exports.getTemplateByIdQuery = getTemplateByIdQuery;
 const getProfileTemplatesSql = `
-select t.id as "templateId", t.title, t.topic, t."createdAt", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
-from template t
-join "user" u on t."createdBy" = u.id
-left join form f on t.id = f."templateId"
-join "templateTag" tt on t.id = tt."templateId"
-join tag ta on tt."tagId" = ta.id
-where t."createdBy" = $1
-group by t.id, t.title, t.topic, t."createdAt"
-order by t."createdAt" desc
+with templatedata as (
+  select 
+    t.id, 
+    t.title, 
+    t.topic, 
+    t."createdAt",
+    array_agg(distinct ta."tagName") as tags,
+    count(distinct f.id) as "responses"
+  from template t
+  join "user" u ON t."createdBy" = u.id
+  left join form f on t.id = f."templateId"
+  left join "templateTag" tt on t.id = tt."templateId"
+  left join tag ta on tt."tagId" = ta.id
+  where t."createdBy" = $1
+  group by t.id, t.title, t.topic, t."createdAt"
+)
+select * from templatedata
+order by "createdAt" desc
 `;
 const getProfileTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {

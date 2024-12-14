@@ -71,6 +71,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.login = login;
+// ToDo
 const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { token, user } = req.body;

@@ -4,6 +4,7 @@ import * as TemplateController from '../controllers/TemplateController';
 import * as TagController from '../controllers/TagController';
 
 import { authMiddleware } from '../middlewares/AuthMiddleware';
+import { isAuthorMiddleware } from '../middlewares/IsAuthorMiddleware';
 
 const router = express.Router();
 
@@ -30,6 +31,7 @@ router.get('/tags', TagController.getTags);
 
 router.post('/forms/submit/:templateId', authMiddleware, TemplateController.createForm);
 router.post('/forms/check/:templateId', authMiddleware, TemplateController.hasUserSubmittedForm);
-router.get('/forms/responses/:templateId', authMiddleware, TemplateController.getForms);
+router.get('/forms/:templateId', authMiddleware, isAuthorMiddleware, TemplateController.getForms);
+router.get('/forms/:templateId/responses/:formId', authMiddleware, isAuthorMiddleware, TemplateController.getForm);
 
 export default router;

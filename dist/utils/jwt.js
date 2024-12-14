@@ -17,6 +17,7 @@ const createSecretToken = (userId, email) => {
     });
 };
 exports.createSecretToken = createSecretToken;
+// ToDo
 const verifySecretToken = (token) => {
     const token_key = process.env.TOKEN_KEY;
     if (!token_key) {

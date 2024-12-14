@@ -20,6 +20,7 @@ interface JwtPayloadExtended extends JwtPayload {
   exp: number;
 }
 
+// ToDo
 export const verifySecretToken = (token: string) => {
   const token_key = process.env.TOKEN_KEY;
   if (!token_key) {

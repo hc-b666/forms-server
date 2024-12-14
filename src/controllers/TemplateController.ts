@@ -16,6 +16,7 @@ import { getUserByIdQuery } from '../models/queries/userQuery';
 import { 
   checkIfUserIsAuthorOfTemplateQuery, 
   createFormQuery, 
+  getFormQuery, 
   getFormsQuery, 
   hasUserSubmittedFormQuery 
 } from '../models/queries/formQuery';
@@ -225,30 +226,35 @@ export const hasUserSubmittedForm: RequestHandler = async (req, res) => {
 
 export const getForms: RequestHandler = async (req, res) => {
   try {
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    const { templateId } = req.params;
+    const templateId = req.templateId;
     if (!templateId) {
       res.status(400).json({ message: 'Template ID is required' });
       return;
     }
 
-    const isAuthor = await checkIfUserIsAuthorOfTemplateQuery(parseInt(templateId), userId);
-    if (!isAuthor) {
-      res.status(401).json({ message: 'Action not allowed' });
-      return;
-    }
-
-    const template = await getTemplateByIdQuery(parseInt(templateId));
-    const forms = await getFormsQuery(parseInt(templateId));
+    const template = await getTemplateByIdQuery(templateId);
+    const forms = await getFormsQuery(templateId);
 
     res.status(200).json({ forms, template });
   } catch (err) {
     console.log(`Error in getForms: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const getForm: RequestHandler = async (req, res) => {
+  try {
+    const { formId } = req.params;
+    if (!formId) {
+      res.status(400).json({ message: 'Form ID is required' });
+      return;
+    }
+
+    const responses = await getFormQuery(parseInt(formId));
+
+    res.status(200).json(responses);
+  } catch (err) {
+    console.log(`Error in getForm: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

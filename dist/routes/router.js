@@ -41,6 +41,7 @@ const AuthController = __importStar(require("../controllers/AuthController"));
 const TemplateController = __importStar(require("../controllers/TemplateController"));
 const TagController = __importStar(require("../controllers/TagController"));
 const AuthMiddleware_1 = require("../middlewares/AuthMiddleware");
+const IsAuthorMiddleware_1 = require("../middlewares/IsAuthorMiddleware");
 const router = express_1.default.Router();
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
@@ -58,5 +59,6 @@ router.post('/templates/unlike/:templateId', AuthMiddleware_1.authMiddleware, Te
 router.get('/tags', TagController.getTags);
 router.post('/forms/submit/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.createForm);
 router.post('/forms/check/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.hasUserSubmittedForm);
-router.get('/forms/responses/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.getForms);
+router.get('/forms/:templateId', AuthMiddleware_1.authMiddleware, IsAuthorMiddleware_1.isAuthorMiddleware, TemplateController.getForms);
+router.get('/forms/:templateId/responses/:formId', AuthMiddleware_1.authMiddleware, IsAuthorMiddleware_1.isAuthorMiddleware, TemplateController.getForm);
 exports.default = router;
