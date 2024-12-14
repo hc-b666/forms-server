@@ -48,11 +48,11 @@ select
             where l2."templateId" = t.id and l2."userId" = $1::int
         )
     end as "hasLiked"
-from "template" t
+from template t
 join "user" u on t."createdBy" = u.id
-left join "form" f on t.id = f."templateId"
+left join form f on t.id = f."templateId"
 join "templateTag" tt on t.id = tt."templateId"
-join "tag" ta on tt."tagId" = ta.id
+join tag ta on tt."tagId" = ta.id
 left join "like" l on l."templateId" = t.id
 where t."isPublic" = true
 group by t.id, t.title, t.topic, t."createdAt", u."email"
@@ -71,11 +71,11 @@ const getTopTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.getTopTemplatesQuery = getTopTemplatesQuery;
 exports.getLatestTemplatesQuery = `
-select t.id, t.title, t.topic, t."createdAt", u."email", array_agg(ta."tagName") as tags
+select t.id, t.title, t.topic, t."createdAt", u.email, array_agg(ta."tagName") as tags
 from "template" t
 join "user" u on t."createdBy" = u.id
 join "templateTag" tt on t.id = tt."templateId"
-join "tag" ta on tt."tagId" = ta.id
+join tag ta on tt."tagId" = ta.id
 where t."isPublic" = true
 group by t.id, t.title, t.topic, t."createdAt", u.email
 order by t."createdAt" desc
@@ -83,21 +83,21 @@ limit 10
 `;
 const getTemplateByIdSql = `
 select t.id as "templateId", t.title, t.description, t.topic, t."createdAt", u.id as "userId", u.email 
-from "template" t
+from template t
 join "user" u on t."createdBy" = u.id
 where t.id = $1
 `;
 const getTemplateTagsSql = `
 select ta."tagName"
-from "template" t
+from template t
 join "templateTag" tt on t.id = tt."templateId"
-join "tag" ta on tt."tagId" = ta.id
+join tag ta on tt."tagId" = ta.id
 where t.id = $1
 `;
 const getTemplateQuestionsSql = `
 select q.id, q.question, q.type
-from "template" t
-join "question" q on t.id = q."templateId"
+from template t
+join question q on t.id = q."templateId"
 where t.id = $1
 `;
 const getQuestionOptionsSql = `
@@ -107,8 +107,8 @@ where qo."questionId" = $1
 `;
 const getTemplateCommentsSql = `
 select c.id as "commentId", c.content, c."createdAt", u.id as "authorId", u.email
-from "template" t
-join "comment" c on t.id = c."templateId"
+from template t
+join comment c on t.id = c."templateId"
 join "user" u on c."userId" = u.id
 where t.id = $1
 `;
@@ -137,11 +137,11 @@ const getTemplateByIdQuery = (templateId) => __awaiter(void 0, void 0, void 0, f
 exports.getTemplateByIdQuery = getTemplateByIdQuery;
 const getProfileTemplatesSql = `
 select t.id as "templateId", t.title, t.topic, t."createdAt", array_agg(distinct ta."tagName") as tags, count(f.id) as "responses"
-from "template" t
+from template t
 join "user" u on t."createdBy" = u.id
-left join "form" f on t.id = f."templateId"
+left join form f on t.id = f."templateId"
 join "templateTag" tt on t.id = tt."templateId"
-join "tag" ta on tt."tagId" = ta.id
+join tag ta on tt."tagId" = ta.id
 where t."createdBy" = $1
 group by t.id, t.title, t.topic, t."createdAt"
 order by t."createdAt" desc
@@ -157,8 +157,15 @@ const getProfileTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getProfileTemplatesQuery = getProfileTemplatesQuery;
-const likeTemplateSql = `insert into "like" ("userId", "templateId") values ($1, $2)`;
-const checkLikeTemplateSql = `select count(*) from "like" where "userId" = $1 and "templateId" = $2`;
+const likeTemplateSql = `
+insert into "like" ("userId", "templateId") 
+values ($1, $2)
+`;
+const checkLikeTemplateSql = `
+select count(*) 
+from "like" 
+where "userId" = $1 and "templateId" = $2
+`;
 const likeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const res = yield postgresDb_1.default.query(checkLikeTemplateSql, [userId, templateId]);
@@ -172,7 +179,11 @@ const likeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, void
     }
 });
 exports.likeTemplateQuery = likeTemplateQuery;
-const unlikeTemplateSql = `delete from "like" where "userId" = $1 and "templateId" = $2`;
+const unlikeTemplateSql = `
+delete 
+from "like" 
+where "userId" = $1 and "templateId" = $2
+`;
 const unlikeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield postgresDb_1.default.query(unlikeTemplateSql, [userId, templateId]);

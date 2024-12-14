@@ -47,7 +47,7 @@ router.post('/auth/login', AuthController.login);
 router.post('/auth/validate-token', AuthController.validateToken);
 router.get('/templates/top5', TemplateController.getTopTemplates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
-router.get('/templates/:id', TemplateController.getTemplateById);
+router.get('/templates/:templateId', TemplateController.getTemplateById);
 router.get('/templates/profile/:userId', AuthMiddleware_1.authMiddleware, TemplateController.getProfile);
 router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
 // router.patch('/templates/update/:templateId', authMiddleware, TemplateController.updateTemplate);
@@ -58,4 +58,5 @@ router.post('/templates/unlike/:templateId', AuthMiddleware_1.authMiddleware, Te
 router.get('/tags', TagController.getTags);
 router.post('/forms/submit/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.createForm);
 router.post('/forms/check/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.hasUserSubmittedForm);
+router.get('/forms/responses/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.getForms);
 exports.default = router;

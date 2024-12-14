@@ -13,7 +13,12 @@ import {
 import { createQuestionsQuery } from '../models/queries/questionQuery';
 import { createTagsQuery } from '../models/queries/tagQuery';
 import { getUserByIdQuery } from '../models/queries/userQuery';
-import { createFormQuery, hasUserSubmittedFormQuery } from '../models/queries/formQuery';
+import { 
+  checkIfUserIsAuthorOfTemplateQuery, 
+  createFormQuery, 
+  getFormsQuery, 
+  hasUserSubmittedFormQuery 
+} from '../models/queries/formQuery';
 
 interface ICreateTemplateBody {
   title: string;
@@ -78,13 +83,13 @@ export const getLatestTemplates: RequestHandler = async (req, res) => {
 };
 
 interface IGetTemplateByIdParams {
-  id: number;
+  templateId: number;
 }
 export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { templateId } = req.params;
     
-    const template = await getTemplateByIdQuery(id);
+    const template = await getTemplateByIdQuery(templateId);
 
     res.status(200).json(template);
   } catch (err) {
@@ -214,6 +219,36 @@ export const hasUserSubmittedForm: RequestHandler = async (req, res) => {
     res.status(200).json({ hasSubmitted });
   } catch (err) {
     console.log(`Error in hasUserSubmittedForm: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const getForms: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { templateId } = req.params;
+    if (!templateId) {
+      res.status(400).json({ message: 'Template ID is required' });
+      return;
+    }
+
+    const isAuthor = await checkIfUserIsAuthorOfTemplateQuery(parseInt(templateId), userId);
+    if (!isAuthor) {
+      res.status(401).json({ message: 'Action not allowed' });
+      return;
+    }
+
+    const template = await getTemplateByIdQuery(parseInt(templateId));
+    const forms = await getFormsQuery(parseInt(templateId));
+
+    res.status(200).json({ forms, template });
+  } catch (err) {
+    console.log(`Error in getForms: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hasUserSubmittedFormQuery = exports.createFormQuery = void 0;
+exports.getFormsQuery = exports.checkIfUserIsAuthorOfTemplateQuery = exports.hasUserSubmittedFormQuery = exports.createFormQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 const createFormSql = `
 insert into form ("filledBy", "templateId") 
@@ -65,3 +65,58 @@ const hasUserSubmittedFormQuery = (filledBy, templateId) => __awaiter(void 0, vo
     }
 });
 exports.hasUserSubmittedFormQuery = hasUserSubmittedFormQuery;
+const checkIfUserIsAuthorOfTemplateSql = `
+select exists (
+  select 1 
+  from template 
+  where id = $1 and "createdBy" = $2
+) as is_author
+`;
+const checkIfUserIsAuthorOfTemplateQuery = (templateId, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(checkIfUserIsAuthorOfTemplateSql, [templateId, userId]);
+        return rows[0].is_author;
+    }
+    catch (err) {
+        console.error(`Error in checkIfUserIsAuthorOfTemplateQuery: ${err}`);
+        throw err;
+    }
+});
+exports.checkIfUserIsAuthorOfTemplateQuery = checkIfUserIsAuthorOfTemplateQuery;
+const getFormsSql = `
+select 
+  f.id as "formId", 
+  f."filledBy", 
+  f."filledAt", 
+  t.title as "templateTitle",
+  (select json_agg(
+    json_build_object(
+      'questionId', q.id,
+      'question', q.question,
+      'answer', r.answer,
+      'optionId', r."optionId",
+      'option', qo.option,
+      'questionType', q.type
+    )
+  )
+  from response r
+  join question q on r."questionId" = q.id
+  left join "questionOption" qo on r."optionId" = qo.id
+  where r."formId" = f.id
+  ) as responses
+from form f
+join template t on f."templateId" = t.id
+where f."templateId" = $1
+order by f.id
+`;
+const getFormsQuery = (templateId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(getFormsSql, [templateId]);
+        return rows;
+    }
+    catch (err) {
+        console.error(`Error in getFormsQuery: ${err}`);
+        throw err;
+    }
+});
+exports.getFormsQuery = getFormsQuery;

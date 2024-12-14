@@ -14,7 +14,7 @@ router.post('/auth/validate-token', AuthController.validateToken);
 router.get('/templates/top5', TemplateController.getTopTemplates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
 
-router.get('/templates/:id', TemplateController.getTemplateById);
+router.get('/templates/:templateId', TemplateController.getTemplateById);
 
 router.get('/templates/profile/:userId', authMiddleware, TemplateController.getProfile);
 router.post('/templates/create', authMiddleware, TemplateController.createTemplate);
@@ -30,5 +30,6 @@ router.get('/tags', TagController.getTags);
 
 router.post('/forms/submit/:templateId', authMiddleware, TemplateController.createForm);
 router.post('/forms/check/:templateId', authMiddleware, TemplateController.hasUserSubmittedForm);
+router.get('/forms/responses/:templateId', authMiddleware, TemplateController.getForms);
 
 export default router;
