@@ -85,15 +85,13 @@ declare global {
   }
 
   interface IResponse {
-    responseId: number;
     questionId: number;
-    answer: string;
-    optionId: number | null;
-
     question: string;
-    questionType: QuestionType;
-    questionOptionId: number | null;
-    questionOptionText: string | null;
+    type: QuestionType;
+    responseId: number;
+    answer: string | null;
+    optionId: number | null;
+    option: string | null;
   }
 }
 
