@@ -85,84 +85,37 @@ const checkIfUserIsAuthorOfTemplateQuery = (templateId, userId) => __awaiter(voi
 exports.checkIfUserIsAuthorOfTemplateQuery = checkIfUserIsAuthorOfTemplateQuery;
 const getFormSql = `
 select 
-  r.id as "responseId",
-  r."questionId",
-  r.answer,
-  r."optionId",
-  
+  q.id as "questionId",
   q.question,
-  q.type as "questionType",
-  
-  qo.id as "questionOptionId",
-  qo.option as "questionOptionText"
+  q.type,
 
+  r.id as "responseId",
+  r.answer,
+  
+  r."optionId",
+  qo.option
 from response r
 join question q on r."questionId" = q.id
 left join "questionOption" qo on r."optionId" = qo.id
 where r."formId" = $1
+order by q.id, r."optionId"
 `;
-// const getFormSql = `
-// with checkbox_responses as (
-//   select 
-//     r."questionId",
-//     jsonb_build_object('optionId', qo.id, 'option', qo.option) as "selectedOptions"
-//   from response r
-//   join question q on r."questionId" = q.id
-//   join "questionOption" qo on r."optionId" = qo.id
-//   where r."formId" = $1 and q.type = 'checkbox'
-//   group by r."questionId", qo.id
-// ),
-// all_responses as (
-//   select
-//     r.id as "responseId",
-//     r."questionId",
-//     r.answer,
-//     r."optionId",
-//     q.id as "questionId",
-//     q.question,
-//     q.type as "questionType",
-//     qo.id as "questionOptionId",
-//     qo.option as "questionOptionText"
-//   from response r
-//   join question q on r."questionId" = q.id
-//   left join "questionOption" qo on r."optionId" = qo.id
-//   where r."formId" = $1
-// )
-// select ar.*, coalesce(cr."selectedOptions", '[]'::jsonb) as "selectedOptions"
-// from all_responses ar
-// left join checkbox_responses cr on ar."questionId" = cr."questionId"
-// order by ar."questionId"
-// `;
 const getFormQuery = (formId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { rows } = yield postgresDb_1.default.query(getFormSql, [formId]);
-        const responses = [];
+        const responses = new Map();
         rows.forEach((response) => {
-            const responseIndex = responses.findIndex((r) => r.questionId === response.questionId);
-            if (responseIndex === -1) {
-                responses.push({
-                    questionId: response.questionId,
-                    question: response.question,
-                    questionType: response.questionType,
-                    selectedOptions: response.questionType === 'checkbox' ? [] : null,
-                    responseId: response.responseId,
-                    answer: response.answer,
-                    options: response.questionType === 'checkbox' ? [] : null,
-                });
+            if (responses.has(response.questionId)) {
+                const existing = responses.get(response.questionId);
+                if (response.option) {
+                    existing === null || existing === void 0 ? void 0 : existing.options.push(response.option);
+                }
             }
             else {
-                if (response.questionType === 'checkbox') {
-                    responses[responseIndex].selectedOptions.push({
-                        optionId: response.questionOptionId,
-                        option: response.questionOptionText,
-                    });
-                }
-                else {
-                    responses[responseIndex].answer = response.answer;
-                }
+                responses.set(response.questionId, Object.assign(Object.assign({}, response), { options: response.option ? [response.option] : [] }));
             }
         });
-        return { rows, responses };
+        return Array.from(responses.values());
     }
     catch (err) {
         console.error(`Error in getFormQuery: ${err}`);
