@@ -131,7 +131,6 @@ export const getTemplateByIdQuery = async (templateId: number) => {
 
     const template = getTemplateRes.rows[0];
     const getTagsRes = await pool.query(getTemplateTagsSql, [templateId]);
-    console.log(getTagsRes)
     template.tags = getTagsRes.rows.map(row => row.tagName);
     const getQuestionsRes = await pool.query(getTemplateQuestionsSql, [templateId]);
     template.questions = [];
