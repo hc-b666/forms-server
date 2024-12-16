@@ -90,6 +90,11 @@ export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (re
     
     const template = await getTemplateByIdQuery(templateId);
 
+    if (template === null) {
+      res.status(404).json({ message: `Template with id ${templateId} not found` });
+      return;
+    }
+
     res.status(200).json(template);
   } catch (err) {
     console.log(`Error in getTemplateById: ${err}`);

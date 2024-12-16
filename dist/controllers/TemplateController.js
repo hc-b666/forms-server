@@ -65,6 +65,10 @@ const getTemplateById = (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         const { templateId } = req.params;
         const template = yield (0, templateQuery_1.getTemplateByIdQuery)(templateId);
+        if (template === null) {
+            res.status(404).json({ message: `Template with id ${templateId} not found` });
+            return;
+        }
         res.status(200).json(template);
     }
     catch (err) {

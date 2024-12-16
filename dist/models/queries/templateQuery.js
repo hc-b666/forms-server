@@ -134,8 +134,12 @@ where t.id = $1
 const getTemplateByIdQuery = (templateId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const getTemplateRes = yield postgresDb_1.default.query(getTemplateByIdSql, [templateId]);
+        if (getTemplateRes.rows.length === 0) {
+            return null;
+        }
         const template = getTemplateRes.rows[0];
         const getTagsRes = yield postgresDb_1.default.query(getTemplateTagsSql, [templateId]);
+        console.log(getTagsRes);
         template.tags = getTagsRes.rows.map(row => row.tagName);
         const getQuestionsRes = yield postgresDb_1.default.query(getTemplateQuestionsSql, [templateId]);
         template.questions = [];

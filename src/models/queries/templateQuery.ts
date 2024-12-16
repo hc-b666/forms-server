@@ -125,8 +125,13 @@ where t.id = $1
 export const getTemplateByIdQuery = async (templateId: number) => {
   try {
     const getTemplateRes = await pool.query(getTemplateByIdSql, [templateId]) as { rows: ISingleTemplate[] };
+    if (getTemplateRes.rows.length === 0) {
+      return null;
+    }
+
     const template = getTemplateRes.rows[0];
     const getTagsRes = await pool.query(getTemplateTagsSql, [templateId]);
+    console.log(getTagsRes)
     template.tags = getTagsRes.rows.map(row => row.tagName);
     const getQuestionsRes = await pool.query(getTemplateQuestionsSql, [templateId]);
     template.questions = [];
