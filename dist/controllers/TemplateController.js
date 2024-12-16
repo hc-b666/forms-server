@@ -9,12 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getForm = exports.getForms = exports.hasUserSubmittedForm = exports.createForm = exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
+exports.createComment = exports.getForm = exports.getForms = exports.hasUserSubmittedForm = exports.createForm = exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
 const tagQuery_1 = require("../models/queries/tagQuery");
 const userQuery_1 = require("../models/queries/userQuery");
 const formQuery_1 = require("../models/queries/formQuery");
+const commentQuery_1 = require("../models/queries/commentQuery");
 const createTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { title, description, createdBy, topic, type, questions, tags } = req.body;
@@ -216,3 +217,29 @@ const getForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getForm = getForm;
+const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { templateId } = req.params;
+        if (!templateId) {
+            res.status(400).json({ message: 'Template ID is required' });
+            return;
+        }
+        const userId = req.userId;
+        if (!userId) {
+            res.status(403).json({ message: 'Unauthorized' });
+            return;
+        }
+        const { content } = req.body;
+        if (!content) {
+            res.status(400).json({ message: 'Content is required' });
+            return;
+        }
+        yield (0, commentQuery_1.createCommentQuery)(userId, parseInt(templateId), content);
+        res.status(200).json({ message: 'Successfully created comment' });
+    }
+    catch (err) {
+        console.log(`Error in createComment: ${err}`);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.createComment = createComment;

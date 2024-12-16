@@ -120,6 +120,7 @@ from template t
 join comment c on t.id = c."templateId"
 join "user" u on c."userId" = u.id
 where t.id = $1
+order by c."createdAt" desc
 `;
 
 export const getTemplateByIdQuery = async (templateId: number) => {

@@ -18,6 +18,7 @@ import {
   getFormsQuery, 
   hasUserSubmittedFormQuery 
 } from '../models/queries/formQuery';
+import { createCommentQuery } from '../models/queries/commentQuery';
 
 interface ICreateTemplateBody {
   title: string;
@@ -258,6 +259,35 @@ export const getForm: RequestHandler = async (req, res) => {
     res.status(200).json(responses);
   } catch (err) {
     console.log(`Error in getForm: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const createComment: RequestHandler = async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    if (!templateId) {
+      res.status(400).json({ message: 'Template ID is required' });
+      return;
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      res.status(403).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const { content } = req.body;
+    if (!content) {
+      res.status(400).json({ message: 'Content is required' });
+      return;
+    }
+
+    await createCommentQuery(userId, parseInt(templateId), content);
+
+    res.status(200).json({ message: 'Successfully created comment' });
+  } catch (err) {
+    console.log(`Error in createComment: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

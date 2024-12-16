@@ -62,4 +62,5 @@ router.post('/forms/submit/:templateId', AuthMiddleware_1.authMiddleware, Templa
 router.post('/forms/check/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.hasUserSubmittedForm);
 router.get('/forms/:templateId', AuthMiddleware_1.authMiddleware, IsAuthorMiddleware_1.isAuthorMiddleware, TemplateController.getForms);
 router.get('/forms/:templateId/responses/:formId', AuthMiddleware_1.authMiddleware, IsAuthorMiddleware_1.isAuthorMiddleware, TemplateController.getForm);
+router.post('/comments/create/:templateId', AuthMiddleware_1.authMiddleware, TemplateController.createComment);
 exports.default = router;

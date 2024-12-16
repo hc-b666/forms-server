@@ -35,4 +35,6 @@ router.post('/forms/check/:templateId', authMiddleware, TemplateController.hasUs
 router.get('/forms/:templateId', authMiddleware, isAuthorMiddleware, TemplateController.getForms);
 router.get('/forms/:templateId/responses/:formId', authMiddleware, isAuthorMiddleware, TemplateController.getForm);
 
+router.post('/comments/create/:templateId', authMiddleware, TemplateController.createComment);
+
 export default router;
