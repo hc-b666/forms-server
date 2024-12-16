@@ -12,23 +12,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createTagsQuery = exports.getTagsQuery = exports.createTemplateTagQuery = exports.createTagQuery = exports.findTagQuery = void 0;
+exports.searchTagsQuery = exports.searchTagsSql = exports.createTagsQuery = exports.getTagsSql = exports.createTemplateTagSql = exports.createTagSql = exports.findTagSql = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
-exports.findTagQuery = `
+exports.findTagSql = `
 SELECT id 
 FROM tag 
 WHERE "tagName" = $1
 `;
-exports.createTagQuery = `
+exports.createTagSql = `
 INSERT INTO tag ("tagName") 
 VALUES ($1) 
 RETURNING id
 `;
-exports.createTemplateTagQuery = `
+exports.createTemplateTagSql = `
 INSERT INTO "templateTag" ("templateId", "tagId") 
 VALUES ($1, $2)
 `;
-exports.getTagsQuery = `
+exports.getTagsSql = `
 select t.id, t."tagName"
 from "tag" t
 limit 20
@@ -36,16 +36,16 @@ limit 20
 const createTagsQuery = (_a) => __awaiter(void 0, [_a], void 0, function* ({ templateId, tags }) {
     try {
         for (const tag of tags) {
-            let tagRes = yield postgresDb_1.default.query(exports.findTagQuery, [tag]);
+            let tagRes = yield postgresDb_1.default.query(exports.findTagSql, [tag]);
             let tagId;
             if (tagRes.rows.length === 0) {
-                tagRes = yield postgresDb_1.default.query(exports.createTagQuery, [tag]);
+                tagRes = yield postgresDb_1.default.query(exports.createTagSql, [tag]);
                 tagId = tagRes.rows[0].id;
             }
             else {
                 tagId = tagRes.rows[0].id;
             }
-            yield postgresDb_1.default.query(exports.createTemplateTagQuery, [templateId, tagId]);
+            yield postgresDb_1.default.query(exports.createTemplateTagSql, [templateId, tagId]);
         }
     }
     catch (err) {
@@ -54,3 +54,21 @@ const createTagsQuery = (_a) => __awaiter(void 0, [_a], void 0, function* ({ tem
     }
 });
 exports.createTagsQuery = createTagsQuery;
+exports.searchTagsSql = `
+select id, "tagName"
+from tag t
+where t."tagName" ilike $1
+order by t."tagName"
+limit 10
+`;
+const searchTagsQuery = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const tags = yield postgresDb_1.default.query(exports.searchTagsSql, [`%${query}%`]);
+        return tags.rows;
+    }
+    catch (err) {
+        console.error(`Error in searchTagsQuery: ${err}`);
+        throw err;
+    }
+});
+exports.searchTagsQuery = searchTagsQuery;

@@ -28,6 +28,7 @@ router.post('/templates/unlike/:templateId', authMiddleware, TemplateController.
 // router.post('/templates/comment/:templateId', authMiddleware, TemplateController.commentOnTemplate);
 
 router.get('/tags', TagController.getTags);
+router.get('/tags/search', authMiddleware, TagController.searchTags);
 
 router.post('/forms/submit/:templateId', authMiddleware, TemplateController.createForm);
 router.post('/forms/check/:templateId', authMiddleware, TemplateController.hasUserSubmittedForm);
