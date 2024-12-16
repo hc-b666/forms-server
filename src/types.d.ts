@@ -42,13 +42,22 @@ declare global {
   interface ITopTemplate {
     id: number;
     title: string;
+    description: string;
     topic: string;
     createdAt: string;
     email: string;
     responses: string;
-    tags: string[];
     totalLikes: string;
     hasLiked: boolean;
+  }
+
+  interface ILatestTemplate {
+    id: number;
+    title: string;
+    description: string;
+    topic: string;
+    createdAt: string;
+    email: string;
   }
 
   interface IQuestionOption {

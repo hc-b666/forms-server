@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
+exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getLatestTemplatesSql = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 const createTemplateSql = `
 insert into template ("createdBy", title, description, topic, "isPublic")
@@ -32,31 +32,29 @@ const createTemplateQuery = (userId, title, description, topic, isPublic) => __a
 exports.createTemplateQuery = createTemplateQuery;
 exports.getTopTemplatesSql = `
 select 
-    t.id, 
-    t.title, 
-    t.topic, 
-    t."createdAt", 
-    u.email, 
-    count(f.id) as "responses", 
-    array_agg(ta."tagName") as tags,
-    count(distinct l."id") as "totalLikes",
-    case 
-        when $1::int is null then false
-        else exists (
-            select 1 
-            from "like" l2
-            where l2."templateId" = t.id and l2."userId" = $1::int
-        )
-    end as "hasLiked"
+  t.id, 
+  t.title, 
+  t.description,
+  t.topic, 
+  t."createdAt", 
+  u.email, 
+  count(distinct f.id) as "responses", 
+  count(distinct l."id") as "totalLikes",
+  case 
+    when $1::int is null then false
+    else exists (
+      select 1 
+      from "like" l2
+      where l2."templateId" = t.id and l2."userId" = $1::int
+    )
+  end as "hasLiked"
 from template t
 join "user" u on t."createdBy" = u.id
 left join form f on t.id = f."templateId"
-join "templateTag" tt on t.id = tt."templateId"
-join tag ta on tt."tagId" = ta.id
 left join "like" l on l."templateId" = t.id
 where t."isPublic" = true
-group by t.id, t.title, t.topic, t."createdAt", u."email"
-order by count(f.id) desc
+group by t.id, u.email
+order by count(distinct f.id) desc
 limit 5
 `;
 const getTopTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -70,19 +68,40 @@ const getTopTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.getTopTemplatesQuery = getTopTemplatesQuery;
-exports.getLatestTemplatesQuery = `
-select t.id, t.title, t.topic, t."createdAt", u.email, array_agg(ta."tagName") as tags
-from "template" t
+exports.getLatestTemplatesSql = `
+select 
+  t.id, 
+  t.title, 
+  t.description, 
+  t.topic, 
+  t."createdAt", 
+  u.email
+from template t
 join "user" u on t."createdBy" = u.id
-join "templateTag" tt on t.id = tt."templateId"
-join tag ta on tt."tagId" = ta.id
 where t."isPublic" = true
-group by t.id, t.title, t.topic, t."createdAt", u.email
 order by t."createdAt" desc
 limit 10
 `;
+const getLatestTemplatesQuery = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(exports.getLatestTemplatesSql);
+        return rows;
+    }
+    catch (err) {
+        console.error(`Error in getLatestTemplatesQuery: ${err}`);
+        throw err;
+    }
+});
+exports.getLatestTemplatesQuery = getLatestTemplatesQuery;
 const getTemplateByIdSql = `
-select t.id as "templateId", t.title, t.description, t.topic, t."createdAt", u.id as "userId", u.email 
+select 
+  t.id as "templateId", 
+  t.title, 
+  t.description, 
+  t.topic, 
+  t."createdAt", 
+  u.id as "userId", 
+  u.email 
 from template t
 join "user" u on t."createdBy" = u.id
 where t.id = $1
@@ -150,7 +169,7 @@ with templatedata as (
   left join "templateTag" tt on t.id = tt."templateId"
   left join tag ta on tt."tagId" = ta.id
   where t."createdBy" = $1
-  group by t.id, t.title, t.topic, t."createdAt"
+  group by t.id
 )
 select * from templatedata
 order by "createdAt" desc

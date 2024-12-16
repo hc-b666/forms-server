@@ -18,31 +18,29 @@ export const createTemplateQuery = async (userId: number, title: string, descrip
 
 export const getTopTemplatesSql = `
 select 
-    t.id, 
-    t.title, 
-    t.topic, 
-    t."createdAt", 
-    u.email, 
-    count(f.id) as "responses", 
-    array_agg(ta."tagName") as tags,
-    count(distinct l."id") as "totalLikes",
-    case 
-        when $1::int is null then false
-        else exists (
-            select 1 
-            from "like" l2
-            where l2."templateId" = t.id and l2."userId" = $1::int
-        )
-    end as "hasLiked"
+  t.id, 
+  t.title, 
+  t.description,
+  t.topic, 
+  t."createdAt", 
+  u.email, 
+  count(distinct f.id) as "responses", 
+  count(distinct l."id") as "totalLikes",
+  case 
+    when $1::int is null then false
+    else exists (
+      select 1 
+      from "like" l2
+      where l2."templateId" = t.id and l2."userId" = $1::int
+    )
+  end as "hasLiked"
 from template t
 join "user" u on t."createdBy" = u.id
 left join form f on t.id = f."templateId"
-join "templateTag" tt on t.id = tt."templateId"
-join tag ta on tt."tagId" = ta.id
 left join "like" l on l."templateId" = t.id
 where t."isPublic" = true
-group by t.id, t.title, t.topic, t."createdAt", u."email"
-order by count(f.id) desc
+group by t.id, u.email
+order by count(distinct f.id) desc
 limit 5
 `;
 
@@ -56,20 +54,40 @@ export const getTopTemplatesQuery = async (userId: number | null) => {
   }
 };
 
-export const getLatestTemplatesQuery = `
-select t.id, t.title, t.topic, t."createdAt", u.email, array_agg(ta."tagName") as tags
-from "template" t
+export const getLatestTemplatesSql = `
+select 
+  t.id, 
+  t.title, 
+  t.description, 
+  t.topic, 
+  t."createdAt", 
+  u.email
+from template t
 join "user" u on t."createdBy" = u.id
-join "templateTag" tt on t.id = tt."templateId"
-join tag ta on tt."tagId" = ta.id
 where t."isPublic" = true
-group by t.id, t.title, t.topic, t."createdAt", u.email
 order by t."createdAt" desc
 limit 10
 `;
 
+export const getLatestTemplatesQuery = async () => {
+  try {
+    const { rows } = await pool.query(getLatestTemplatesSql) as { rows: ILatestTemplate[] };
+    return rows;
+  } catch (err) {
+    console.error(`Error in getLatestTemplatesQuery: ${err}`);
+    throw err;
+  }
+};
+
 const getTemplateByIdSql = `
-select t.id as "templateId", t.title, t.description, t.topic, t."createdAt", u.id as "userId", u.email 
+select 
+  t.id as "templateId", 
+  t.title, 
+  t.description, 
+  t.topic, 
+  t."createdAt", 
+  u.id as "userId", 
+  u.email 
 from template t
 join "user" u on t."createdBy" = u.id
 where t.id = $1
@@ -142,7 +160,7 @@ with templatedata as (
   left join "templateTag" tt on t.id = tt."templateId"
   left join tag ta on tt."tagId" = ta.id
   where t."createdBy" = $1
-  group by t.id, t.title, t.topic, t."createdAt"
+  group by t.id
 )
 select * from templatedata
 order by "createdAt" desc

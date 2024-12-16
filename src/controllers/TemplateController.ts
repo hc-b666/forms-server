@@ -1,6 +1,5 @@
 import { RequestHandler } from 'express';
 
-import pool from '../models/postgresDb';
 import { 
   createTemplateQuery, 
   getLatestTemplatesQuery, 
@@ -14,7 +13,6 @@ import { createQuestionsQuery } from '../models/queries/questionQuery';
 import { createTagsQuery } from '../models/queries/tagQuery';
 import { getUserByIdQuery } from '../models/queries/userQuery';
 import { 
-  checkIfUserIsAuthorOfTemplateQuery, 
   createFormQuery, 
   getFormQuery, 
   getFormsQuery, 
@@ -75,8 +73,8 @@ export const getTopTemplates: RequestHandler = async (req, res) => {
 
 export const getLatestTemplates: RequestHandler = async (req, res) => {
   try {
-    const templates = await pool.query(getLatestTemplatesQuery);
-    res.status(200).json(templates.rows);
+    const templates = await getLatestTemplatesQuery();
+    res.status(200).json(templates);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: 'Internal server err' });

@@ -8,12 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getForm = exports.getForms = exports.hasUserSubmittedForm = exports.createForm = exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
-const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
 const tagQuery_1 = require("../models/queries/tagQuery");
@@ -56,8 +52,8 @@ const getTopTemplates = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.getTopTemplates = getTopTemplates;
 const getLatestTemplates = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const templates = yield postgresDb_1.default.query(templateQuery_1.getLatestTemplatesQuery);
-        res.status(200).json(templates.rows);
+        const templates = yield (0, templateQuery_1.getLatestTemplatesQuery)();
+        res.status(200).json(templates);
     }
     catch (err) {
         console.log(err);
