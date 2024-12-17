@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
-router.post('/auth/validate-token', AuthController.validateToken);
+router.post('/auth/refresh-token', AuthController.refreshToken);
 
 router.get('/templates/top5', TemplateController.getTopTemplates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
