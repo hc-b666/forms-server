@@ -7,7 +7,8 @@ import {
   likeTemplateQuery, 
   unlikeTemplateQuery, 
   getProfileTemplatesQuery,
-  getTopTemplatesQuery
+  getTopTemplatesQuery,
+  searchByTagQuery
 } from "../models/queries/templateQuery";
 import { createQuestionsQuery } from '../models/queries/questionQuery';
 import { createTagsQuery } from '../models/queries/tagQuery';
@@ -288,6 +289,29 @@ export const createComment: RequestHandler = async (req, res) => {
     res.status(200).json({ message: 'Successfully created comment' });
   } catch (err) {
     console.log(`Error in createComment: ${err}`);
+    res.status(500).json({ message: 'Internal server err' });
+  }
+};
+
+export const searchByTag: RequestHandler = async (req, res) => {
+  try {
+    const { tagId } = req.params;
+    if (!tagId) {
+      res.status(400).json({ message: 'Tag ID is required' });
+      return;
+    }
+
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const templates = await searchByTagQuery(userId, parseInt(tagId));
+
+    res.status(200).json(templates);
+  } catch (err) {
+    console.log(`Error in searchByTag: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

@@ -24,7 +24,7 @@ class TokenService {
   }
 
   static createRefreshToken(userId: number, email: string) {
-    return jwt.sign({ userId, email }, this.getTokenKey(), { expiresIn: '7d' });
+    return jwt.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 * 24 * 7 });
   }
 
   static verifyToken(token: string): ITokenPayload {

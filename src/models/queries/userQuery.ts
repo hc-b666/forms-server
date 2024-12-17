@@ -16,7 +16,6 @@ export const userExistsQuery = async (username: string, email: string) => {
   }
 };
 
-
 const createUserSql = `
 insert into "user" ("firstName", "lastName", username, email, "passwordHash", role) 
 values ($1, $2, $3, $4, $5, $6)

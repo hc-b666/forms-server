@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchTagsQuery = exports.searchTagsSql = exports.createTagsQuery = exports.getTagsSql = exports.createTemplateTagSql = exports.createTagSql = exports.findTagSql = void 0;
+exports.searchTagsQuery = exports.createTagsQuery = exports.getTagsSql = exports.createTemplateTagSql = exports.createTagSql = exports.findTagSql = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 exports.findTagSql = `
 SELECT id 
@@ -54,7 +54,7 @@ const createTagsQuery = (_a) => __awaiter(void 0, [_a], void 0, function* ({ tem
     }
 });
 exports.createTagsQuery = createTagsQuery;
-exports.searchTagsSql = `
+const searchTagsSql = `
 select id, "tagName"
 from tag t
 where t."tagName" ilike $1
@@ -63,7 +63,7 @@ limit 10
 `;
 const searchTagsQuery = (query) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const tags = yield postgresDb_1.default.query(exports.searchTagsSql, [`%${query}%`]);
+        const tags = yield postgresDb_1.default.query(searchTagsSql, [`%${query}%`]);
         return tags.rows;
     }
     catch (err) {

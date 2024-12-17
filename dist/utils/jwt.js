@@ -18,7 +18,7 @@ class TokenService {
         return jsonwebtoken_1.default.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 });
     }
     static createRefreshToken(userId, email) {
-        return jsonwebtoken_1.default.sign({ userId, email }, this.getTokenKey(), { expiresIn: '7d' });
+        return jsonwebtoken_1.default.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 * 24 * 7 });
     }
     static verifyToken(token) {
         try {

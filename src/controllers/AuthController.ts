@@ -60,7 +60,7 @@ export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = asyn
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      res.status(400).json({ message: 'Invalid credentials' });
+      res.status(400).json({ message: 'Wrong password' });
       return;
     }
 
@@ -92,7 +92,7 @@ export const refreshToken: RequestHandler = async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
-      res.status(400).json({ message: 'No refresh token provided' });
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 

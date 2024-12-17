@@ -47,7 +47,7 @@ export const createTagsQuery = async ({ templateId, tags }: ICreateTagsQuery) =>
   }
 };
 
-export const searchTagsSql = `
+const searchTagsSql = `
 select id, "tagName"
 from tag t
 where t."tagName" ilike $1

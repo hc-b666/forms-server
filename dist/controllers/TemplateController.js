@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createComment = exports.getForm = exports.getForms = exports.hasUserSubmittedForm = exports.createForm = exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
+exports.searchByTag = exports.createComment = exports.getForm = exports.getForms = exports.hasUserSubmittedForm = exports.createForm = exports.unlikeTemplate = exports.likeTemplate = exports.getProfile = exports.getTemplateById = exports.getLatestTemplates = exports.getTopTemplates = exports.createTemplate = void 0;
 const templateQuery_1 = require("../models/queries/templateQuery");
 const questionQuery_1 = require("../models/queries/questionQuery");
 const tagQuery_1 = require("../models/queries/tagQuery");
@@ -243,3 +243,24 @@ const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.createComment = createComment;
+const searchByTag = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { tagId } = req.params;
+        if (!tagId) {
+            res.status(400).json({ message: 'Tag ID is required' });
+            return;
+        }
+        const userId = req.userId;
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized' });
+            return;
+        }
+        const templates = yield (0, templateQuery_1.searchByTagQuery)(userId, parseInt(tagId));
+        res.status(200).json(templates);
+    }
+    catch (err) {
+        console.log(`Error in searchByTag: ${err}`);
+        res.status(500).json({ message: 'Internal server err' });
+    }
+});
+exports.searchByTag = searchByTag;

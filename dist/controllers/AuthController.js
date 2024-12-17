@@ -53,7 +53,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const user = userResult.rows[0];
         const isPasswordValid = yield bcrypt_1.default.compare(password, user.passwordHash);
         if (!isPasswordValid) {
-            res.status(400).json({ message: 'Invalid credentials' });
+            res.status(400).json({ message: 'Wrong password' });
             return;
         }
         const accessToken = jwt_1.default.createAccessToken(user.id, user.email);
@@ -83,7 +83,7 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            res.status(400).json({ message: 'No refresh token provided' });
+            res.status(401).json({ message: 'Unauthorized' });
             return;
         }
         const decoded = jwt_1.default.verifyToken(refreshToken);

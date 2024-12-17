@@ -14,6 +14,7 @@ router.post('/auth/refresh-token', AuthController.refreshToken);
 
 router.get('/templates/top5', TemplateController.getTopTemplates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
+router.get('/templates/search/:tagId', authMiddleware, TemplateController.searchByTag);
 
 router.get('/templates/:templateId', TemplateController.getTemplateById);
 

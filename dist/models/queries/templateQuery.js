@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getLatestTemplatesSql = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
+exports.searchByTagQuery = exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getLatestTemplatesSql = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 const createTemplateSql = `
 insert into template ("createdBy", title, description, topic, "isPublic")
@@ -226,3 +226,37 @@ const unlikeTemplateQuery = (userId, templateId) => __awaiter(void 0, void 0, vo
     }
 });
 exports.unlikeTemplateQuery = unlikeTemplateQuery;
+const searchByTagSql = `
+select
+  t.id,
+  t.title,
+  t.description,
+  t.topic,
+  t."createdAt",
+  u.email,
+  count(distinct f.id) as "responses",
+  count(distinct l."id") as "totalLikes",
+  case 
+    when $1::int is null then false
+    else exists (
+      select 1 
+      from "like" l2
+      where l2."templateId" = t.id and l2."userId" = $1::int
+    )
+  end as "hasLiked"
+from template t
+join "templateTag" tt on t.id = tt."templateId"
+join tag ta on tt."tagId" = ta.id
+where ta.id = $2
+`;
+const searchByTagQuery = (userId, tagId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rows } = yield postgresDb_1.default.query(searchByTagSql, [userId, tagId]);
+        return rows;
+    }
+    catch (err) {
+        console.error(`Error in searchByTagQuery: ${err}`);
+        throw err;
+    }
+});
+exports.searchByTagQuery = searchByTagQuery;

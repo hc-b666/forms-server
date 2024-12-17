@@ -219,3 +219,37 @@ export const unlikeTemplateQuery = async (userId: number, templateId: number) =>
     throw err;
   }
 };
+
+const searchByTagSql = `
+select
+  t.id,
+  t.title,
+  t.description,
+  t.topic,
+  t."createdAt",
+  u.email,
+  count(distinct f.id) as "responses",
+  count(distinct l."id") as "totalLikes",
+  case 
+    when $1::int is null then false
+    else exists (
+      select 1 
+      from "like" l2
+      where l2."templateId" = t.id and l2."userId" = $1::int
+    )
+  end as "hasLiked"
+from template t
+join "templateTag" tt on t.id = tt."templateId"
+join tag ta on tt."tagId" = ta.id
+where ta.id = $2
+`;
+
+export const searchByTagQuery = async (userId: number | null, tagId: number) => {
+  try {
+    const { rows } = await pool.query(searchByTagSql, [userId, tagId]);
+    return rows;
+  } catch (err) {
+    console.error(`Error in searchByTagQuery: ${err}`);
+    throw err;
+  }
+};

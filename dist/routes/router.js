@@ -48,6 +48,7 @@ router.post('/auth/login', AuthController.login);
 router.post('/auth/refresh-token', AuthController.refreshToken);
 router.get('/templates/top5', TemplateController.getTopTemplates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
+router.get('/templates/search/:tagId', AuthMiddleware_1.authMiddleware, TemplateController.searchByTag);
 router.get('/templates/:templateId', TemplateController.getTemplateById);
 router.get('/templates/profile/:userId', AuthMiddleware_1.authMiddleware, TemplateController.getProfile);
 router.post('/templates/create', AuthMiddleware_1.authMiddleware, TemplateController.createTemplate);
