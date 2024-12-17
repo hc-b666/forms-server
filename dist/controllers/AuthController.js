@@ -12,11 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateToken = exports.login = exports.register = void 0;
+exports.refreshToken = exports.login = exports.register = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const postgresDb_1 = __importDefault(require("../models/postgresDb"));
 const userQuery_1 = require("../models/queries/userQuery");
-const jwt_1 = require("../utils/jwt");
+const jwt_1 = __importDefault(require("../utils/jwt"));
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstName, lastName, username, email, password } = req.body;
@@ -24,15 +23,13 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(400).json({ message: 'All inputs are required for registration' });
             return;
         }
-        const exists = yield postgresDb_1.default.query(userQuery_1.userExists, [username, email]);
-        if (exists.rows.length > 0) {
+        const users = yield (0, userQuery_1.userExistsQuery)(username, email);
+        if (users.length > 0) {
             res.status(409).json({ message: 'User already exists with this email or username. Please login' });
             return;
         }
         const passwordHash = yield bcrypt_1.default.hash(password, 10);
-        const newUser = { firstName, lastName, username, email, passwordHash, role: 'user' };
-        const values = [newUser.firstName, newUser.lastName, newUser.username, newUser.email, newUser.passwordHash, newUser.role];
-        yield postgresDb_1.default.query(userQuery_1.createUser, values);
+        yield (0, userQuery_1.createUserQuery)(firstName, lastName, username, email, passwordHash, 'user');
         res.status(200).json({ message: 'Successfully registered!' });
     }
     catch (err) {
@@ -48,66 +45,54 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(400).json({ message: 'All inputs are required for logging in' });
             return;
         }
-        const user = yield postgresDb_1.default.query(userQuery_1.getUserQuery, [email]);
-        if (user.rows.length === 0 || !(yield bcrypt_1.default.compare(password, user.rows[0].passwordHash))) {
+        const userResult = yield (0, userQuery_1.getUserQuery)(email);
+        if (userResult.rows.length === 0) {
             res.status(400).json({ message: 'Invalid credentials' });
             return;
         }
-        const u = user.rows[0];
-        const token = (0, jwt_1.createSecretToken)(u.id, u.email);
-        const ures = {
-            id: u.id,
-            firstName: u.firstName,
-            lastName: u.lastName,
-            username: u.username,
-            email: u.email,
-            role: u.role,
+        const user = userResult.rows[0];
+        const isPasswordValid = yield bcrypt_1.default.compare(password, user.passwordHash);
+        if (!isPasswordValid) {
+            res.status(400).json({ message: 'Invalid credentials' });
+            return;
+        }
+        const accessToken = jwt_1.default.createAccessToken(user.id, user.email);
+        const refreshToken = jwt_1.default.createRefreshToken(user.id, user.email);
+        const response = {
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+            },
+            message: 'Successfully logged in!',
         };
-        res.status(200).json({ token, user: ures, message: 'Successfully logged in!' });
+        res.status(200).json(response);
     }
     catch (err) {
-        console.log(err);
+        console.log(`Error at login: ${err}`);
         res.status(500).json({ message: 'Internal server err' });
     }
 });
 exports.login = login;
-// ToDo
-const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { token, user } = req.body;
-        if (!token || !user) {
-            res.status(403).json({ message: 'Unauthorized' });
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            res.status(400).json({ message: 'No refresh token provided' });
             return;
         }
-        const decoded = (0, jwt_1.verifySecretToken)(token);
-        if (decoded.userId !== user.id || decoded.email !== user.email) {
-            res.status(403).json({ message: 'Unauthorized' });
-            return;
-        }
-        const u = yield postgresDb_1.default.query(userQuery_1.getUserQuery, [decoded.email]);
-        if (u.rows.length === 0) {
-            res.status(403).json({ message: 'Unauthorized' });
-            return;
-        }
-        const us = u.rows[0];
-        if (us.id !== user.id || us.email !== user.email || us.role !== user.role) {
-            res.status(403).json({ message: 'Unauthorized' });
-            return;
-        }
-        const tkn = (0, jwt_1.createSecretToken)(us.id, us.email);
-        const ures = {
-            id: us.id,
-            firstName: us.firstName,
-            lastName: us.lastName,
-            username: us.username,
-            email: us.email,
-            role: us.role,
-        };
-        res.status(200).json({ token: tkn, user: ures });
+        const decoded = jwt_1.default.verifyToken(refreshToken);
+        const newAccessToken = jwt_1.default.createAccessToken(decoded.userId, decoded.email);
+        res.status(200).json({ accessToken: newAccessToken });
     }
     catch (err) {
-        console.log(err);
+        console.log(`Error at refreshToken: ${err}`);
         res.status(500).json({ message: 'Internal server err' });
     }
 });
-exports.validateToken = validateToken;
+exports.refreshToken = refreshToken;

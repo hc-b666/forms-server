@@ -45,7 +45,7 @@ const IsAuthorMiddleware_1 = require("../middlewares/IsAuthorMiddleware");
 const router = express_1.default.Router();
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
-router.post('/auth/validate-token', AuthController.validateToken);
+router.post('/auth/refresh-token', AuthController.refreshToken);
 router.get('/templates/top5', TemplateController.getTopTemplates);
 router.get('/templates/latest', TemplateController.getLatestTemplates);
 router.get('/templates/:templateId', TemplateController.getTemplateById);

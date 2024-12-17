@@ -1,9 +1,8 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 
-import pool from '../models/postgresDb';
-import { createUser, getUserQuery, userExists } from '../models/queries/userQuery';
-import { createSecretToken, verifySecretToken } from '../utils/jwt';
+import { createUserQuery, getUserQuery, userExistsQuery } from '../models/queries/userQuery';
+import TokenService from '../utils/jwt';
 
 interface IRegisterBody {
   firstName: string;
@@ -21,18 +20,15 @@ export const register: RequestHandler<unknown, unknown, IRegisterBody, unknown> 
       return;
     }
 
-    const exists = await pool.query(userExists, [username, email]);
-    if (exists.rows.length > 0) {
+    const users = await userExistsQuery(username, email);
+    if (users.length > 0) {
       res.status(409).json({ message: 'User already exists with this email or username. Please login' });
       return;
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-
-    const newUser = { firstName, lastName, username, email, passwordHash, role: 'user' };
-    const values = [newUser.firstName, newUser.lastName, newUser.username, newUser.email, newUser.passwordHash, newUser.role];
     
-    await pool.query(createUser, values); 
+    await createUserQuery(firstName, lastName, username, email, passwordHash, 'user');
 
     res.status(200).json({ message: 'Successfully registered!' });
   } catch (err) {
@@ -54,83 +50,59 @@ export const login: RequestHandler<unknown, unknown, ILoginBody, unknown> = asyn
       return;
     }
 
-    const user = await pool.query(getUserQuery, [email]);
-    if (user.rows.length === 0 || !(await bcrypt.compare(password, user.rows[0].passwordHash))) {
+    const userResult = await getUserQuery(email);
+    if (userResult.rows.length === 0) {
       res.status(400).json({ message: 'Invalid credentials' });
       return;
     }
 
-    const u = user.rows[0] as IUser;
+    const user = userResult.rows[0];
 
-    const token = createSecretToken(u.id, u.email);
-    const ures = {
-      id: u.id,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      username: u.username,
-      email: u.email,
-      role: u.role,  
-    };
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      res.status(400).json({ message: 'Invalid credentials' });
+      return;
+    }
 
-    res.status(200).json({ token, user: ures, message: 'Successfully logged in!' });
+    const accessToken = TokenService.createAccessToken(user.id, user.email);
+    const refreshToken = TokenService.createRefreshToken(user.id, user.email);
+
+    const response = {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      message: 'Successfully logged in!',
+    }
+
+    res.status(200).json(response);
   } catch (err) {
-    console.log(err);
+    console.log(`Error at login: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };
 
-interface IValidateToken {
-  token: string;
-  user: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    username: string;
-    email: string;
-    role: 'user' | 'admin';
-  };
-}
-
-// ToDo
-export const validateToken: RequestHandler<unknown, unknown, IValidateToken, unknown> = async (req, res) => {
+export const refreshToken: RequestHandler = async (req, res) => {
   try {
-    const { token, user } = req.body;
-    if (!token || !user) {
-      res.status(403).json({ message: 'Unauthorized' });
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      res.status(400).json({ message: 'No refresh token provided' });
       return;
     }
 
-    const decoded = verifySecretToken(token);
-    if (decoded.userId !== user.id || decoded.email !== user.email) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
+    const decoded = TokenService.verifyToken(refreshToken);
 
-    const u = await pool.query(getUserQuery, [decoded.email]);
-    if (u.rows.length === 0) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
+    const newAccessToken = TokenService.createAccessToken(decoded.userId, decoded.email);
 
-    const us = u.rows[0] as IUser;
-    if (us.id !== user.id || us.email !== user.email || us.role !== user.role) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    const tkn = createSecretToken(us.id, us.email);
-    const ures = {
-      id: us.id,
-      firstName: us.firstName,
-      lastName: us.lastName,
-      username: us.username,
-      email: us.email,
-      role: us.role,  
-    };
-
-    res.status(200).json({ token: tkn, user: ures });
+    res.status(200).json({ accessToken: newAccessToken });
   } catch (err) {
-    console.log(err);
+    console.log(`Error at refreshToken: ${err}`);
     res.status(500).json({ message: 'Internal server err' });
   }
 };

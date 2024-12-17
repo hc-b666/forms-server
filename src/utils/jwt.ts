@@ -3,43 +3,46 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 dotenv.config();
 
-export const createSecretToken = (userId: number, email: string) => {
-  const token_key = process.env.TOKEN_KEY;
-  if (!token_key) {
-    throw new Error('TOKEN_KEY is not defined in .env file');
-  }
-
-  return jwt.sign({ userId, email }, token_key, {
-    expiresIn: 60 * 60,
-  });
-};
-
-interface JwtPayloadExtended extends JwtPayload {
+interface ITokenPayload extends JwtPayload {
   userId: number;
   email: string;
   exp: number;
 }
 
-// ToDo
-export const verifySecretToken = (token: string) => {
-  const token_key = process.env.TOKEN_KEY;
-  if (!token_key) {
-    throw new Error('TOKEN_KEY is not defined in .env file');
+class TokenService {
+  private static getTokenKey(): string {
+    const token_key = process.env.TOKEN_KEY;
+    if (!token_key) {
+      throw new Error('TOKEN_KEY is not defined in .env file');
+    }
+
+    return token_key;
   }
 
-  const decoded = jwt.verify(token, token_key) as JwtPayloadExtended;
-  if (!decoded.exp || Date.now() >= decoded.exp * 1000) {
-    throw new Error('Token expired');
+  static createAccessToken(userId: number, email: string) {
+    return jwt.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 });
   }
 
-  return decoded;
+  static createRefreshToken(userId: number, email: string) {
+    return jwt.sign({ userId, email }, this.getTokenKey(), { expiresIn: '7d' });
+  }
+
+  static verifyToken(token: string): ITokenPayload {
+    try {
+      return jwt.verify(token, this.getTokenKey()) as ITokenPayload;
+    } catch (err) {
+      console.log(`Error at verifyToken: ${err}`);
+      throw new Error('Invalid or expired token');
+    }
+  }
+
+  static extractTokenFromHeader(authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Invalid authorization header');
+    }
+
+    return authHeader.split(' ')[1];
+  }
 }
 
-export const verifySecretTokenFromHeader = (authHeader: string) => {
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    throw new Error('Unauthorized');
-  }
-
-  return verifySecretToken(token);
-};
+export default TokenService;

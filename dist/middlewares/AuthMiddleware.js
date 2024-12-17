@@ -8,24 +8,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authMiddleware = void 0;
-const jwt_1 = require("../utils/jwt");
+const jwt_1 = __importDefault(require("../utils/jwt"));
 const getErrorMessage_1 = require("../utils/getErrorMessage");
 const authMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        res.status(403).json({ message: 'Unauthorized' });
-        return;
-    }
     try {
-        const decoded = (0, jwt_1.verifySecretTokenFromHeader)(authHeader);
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            res.status(401).json({ message: 'No authorization header' });
+            return;
+        }
+        const token = jwt_1.default.extractTokenFromHeader(authHeader);
+        const decoded = jwt_1.default.verifyToken(token);
         req.userId = decoded.userId;
         next();
     }
     catch (err) {
         const message = (0, getErrorMessage_1.getErrorMessage)(err);
-        res.status(403).json({ message });
+        res.status(401).json({ message });
     }
 });
 exports.authMiddleware = authMiddleware;
