@@ -1,41 +1,38 @@
 import express from 'express';
-import * as AuthController from '../controllers/AuthController';
-import * as TemplateController from '../controllers/TemplateController';
-import * as TagController from '../controllers/TagController';
 
 import { authMiddleware } from '../middlewares/AuthMiddleware';
 import { isAuthorMiddleware } from '../middlewares/IsAuthorMiddleware';
+import AuthController from '../controllers/AuthController';
+import TemplateController from '../controllers/TemplateController';
+import TagController from '../controllers/TagController';
 
 const router = express.Router();
+const authController = new AuthController();
+const templateController = new TemplateController();
+const tagController = new TagController();
 
-router.post('/auth/register', AuthController.register);
-router.post('/auth/login', AuthController.login);
-router.post('/auth/refresh-token', AuthController.refreshToken);
+router.post('/auth/register', authController.register);
+router.post('/auth/login', authController.login);
+router.post('/auth/refresh-token', authController.refreshToken);
 
-router.get('/templates/top5', TemplateController.getTopTemplates);
-router.get('/templates/latest', TemplateController.getLatestTemplates);
-router.get('/templates/search/:tagId', authMiddleware, TemplateController.searchByTag);
+router.get('/templates/top', templateController.getTopTemplates);
+router.get('/templates/latest', templateController.getLatestTemplates);
+router.get('/templates/:templateId', templateController.getTemplateById);
+router.get('/templates/profile/:userId', authMiddleware, templateController.getProfile);
+router.get('/forms/:templateId', authMiddleware, isAuthorMiddleware, templateController.getForms);
 
-router.get('/templates/:templateId', TemplateController.getTemplateById);
+router.post('/templates/create', authMiddleware, templateController.createTemplate);
+router.post('/forms/check/:templateId', authMiddleware, templateController.hasUserSubmittedForm);
 
-router.get('/templates/profile/:userId', authMiddleware, TemplateController.getProfile);
-router.post('/templates/create', authMiddleware, TemplateController.createTemplate);
-// router.patch('/templates/update/:templateId', authMiddleware, TemplateController.updateTemplate);
-// router.delete('/templates/delete/:templateId', authMiddleware, TemplateController.deleteTemplate);
+// router.post('/templates/like/:templateId', authMiddleware, TemplateController.likeTemplate);
+// router.post('/templates/unlike/:templateId', authMiddleware, TemplateController.unlikeTemplate);
 
-router.post('/templates/like/:templateId', authMiddleware, TemplateController.likeTemplate);
-router.post('/templates/unlike/:templateId', authMiddleware, TemplateController.unlikeTemplate);
+router.get('/tags', tagController.getTags);
+router.get('/tags/search', authMiddleware, tagController.searchTags);
 
-// router.post('/templates/comment/:templateId', authMiddleware, TemplateController.commentOnTemplate);
+router.post('/forms/submit/:templateId', authMiddleware, templateController.createForm);
+router.get('/forms/:templateId/responses/:formId', authMiddleware, isAuthorMiddleware, templateController.getForm);
 
-router.get('/tags', TagController.getTags);
-router.get('/tags/search', authMiddleware, TagController.searchTags);
-
-router.post('/forms/submit/:templateId', authMiddleware, TemplateController.createForm);
-router.post('/forms/check/:templateId', authMiddleware, TemplateController.hasUserSubmittedForm);
-router.get('/forms/:templateId', authMiddleware, isAuthorMiddleware, TemplateController.getForms);
-router.get('/forms/:templateId/responses/:formId', authMiddleware, isAuthorMiddleware, TemplateController.getForm);
-
-router.post('/comments/create/:templateId', authMiddleware, TemplateController.createComment);
+router.post('/comments/create/:templateId', authMiddleware, templateController.createComment);
 
 export default router;

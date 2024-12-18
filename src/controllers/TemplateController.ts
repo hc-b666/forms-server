@@ -1,303 +1,149 @@
-import { RequestHandler } from 'express';
+import { Request, Response } from 'express';
 
-import { 
-  createTemplateQuery, 
-  getLatestTemplatesQuery, 
-  getTemplateByIdQuery, 
-  likeTemplateQuery, 
-  unlikeTemplateQuery, 
-  getProfileTemplatesQuery,
-  getTopTemplatesQuery,
-  searchByTagQuery
-} from "../models/queries/templateQuery";
-import { createQuestionsQuery } from '../models/queries/questionQuery';
-import { createTagsQuery } from '../models/queries/tagQuery';
-import { getUserByIdQuery } from '../models/queries/userQuery';
-import { 
-  createFormQuery, 
-  getFormQuery, 
-  getFormsQuery, 
-  hasUserSubmittedFormQuery 
-} from '../models/queries/formQuery';
-import { createCommentQuery } from '../models/queries/commentQuery';
+import TemplateService from '../services/templateService';
+import UserService from '../services/userService';
 
-interface ICreateTemplateBody {
-  title: string;
-  description: string;
-  createdBy: number;
-  topic: TemplateTopic;
-  type: string;
-  questions: {
-    question: string;
-    type: QuestionType;
-    options: string[];
-  }[];
-  tags: string[];
-}
-export const createTemplate: RequestHandler<unknown, unknown, ICreateTemplateBody, unknown> = async (req, res) => {
-  try {
-    const { title, description, createdBy, topic, type, questions, tags } = req.body;
-    if (!title || !description || !createdBy || !topic || questions.length === 0) {
-      res.status(400).json({ message: 'All inputs are required for creating the template' });
-      return;
-    }
+class TemplateController {
+  private templateService: TemplateService;
+  private userService: UserService;
 
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    const templateId = await createTemplateQuery(userId, title, description, topic, type === 'public' ? true : false);
-
-    await createQuestionsQuery({ templateId, questions }); 
-
-    await createTagsQuery({ templateId, tags });
-
-    res.status(200).json({ message: 'Successfully created template' });
-  } catch (err) {
-    console.log(`Error in createTemplate: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
+  constructor() {
+    this.templateService = new TemplateService();
+    this.userService = new UserService();
   }
-};
 
-export const getTopTemplates: RequestHandler = async (req, res) => {
-  try {
-    const userId = req.userId;
+  getTopTemplates = async (req: Request, res: Response) => {
+    try {
+      const templates = await this.templateService.getTopTemplates();
 
-    const templates = await getTopTemplatesQuery(userId ? userId : null);
-    res.status(200).json(templates);
-  } catch (err) {
-    console.log(`Error in getTopTemplates: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-export const getLatestTemplates: RequestHandler = async (req, res) => {
-  try {
-    const templates = await getLatestTemplatesQuery();
-    res.status(200).json(templates);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-interface IGetTemplateByIdParams {
-  templateId: number;
-}
-export const getTemplateById: RequestHandler<IGetTemplateByIdParams> = async (req, res) => {
-  try {
-    const { templateId } = req.params;
-    
-    const template = await getTemplateByIdQuery(templateId);
-
-    if (template === null) {
-      res.status(404).json({ message: `Template with id ${templateId} not found` });
-      return;
+      res.status(200).json(templates);
+    } catch (err) {
+      console.log(`Error in getTopTemplates: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
     }
+  };
 
-    res.status(200).json(template);
-  } catch (err) {
-    console.log(`Error in getTemplateById: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
+  getLatestTemplates = async (req: Request, res: Response) => {
+    try {
+      const templates = await this.templateService.getLatestTemplates();
 
-export const getProfile: RequestHandler = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
+      res.status(200).json(templates);
+    } catch (err) {
+      console.log(`Error in getLatestTemplates: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
     }
+  };
 
-    const templates = await getProfileTemplatesQuery(parseInt(userId));
-    const user = await getUserByIdQuery(parseInt(userId));
+  getTemplateById = async (req: Request, res: Response) => {
+    try {
+      const { templateId } = req.params;
+      if (!templateId) {
+        res.status(400).json({ message: 'Template ID is required' });
+        return;
+      }
 
-    res.status(200).json({ templates, user });
-  } catch (err) {
-    console.log(`Error in getProfile: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
+      const template = await this.templateService.getTemplateById(
+        parseInt(templateId)
+      );
+      if (!template) {
+        res
+          .status(404)
+          .json({ message: `Template with id ${templateId} not found` });
+        return;
+      }
 
-export const likeTemplate: RequestHandler = async (req, res) => {
-  try {
-    const { templateId } = req.params;
-    if (!templateId) {
-      res.status(400).json({ message: 'Template ID is required' });
-      return;
+      res.status(200).json(template);
+    } catch (err) {
+      console.log(`Error in getTemplateById: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
     }
+  };
 
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
+  getProfile = async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        res.status(400).json({ message: 'User ID is required' });
+        return;
+      }
+
+      const templates = await this.templateService.getProfile(parseInt(userId));
+      const user = await this.userService.getUserById(parseInt(userId));
+
+      res.status(200).json({ templates, user });
+    } catch (err) {
+      console.log(`Error in getProfile: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
     }
+  };
 
-    await likeTemplateQuery(userId, parseInt(templateId));
-
-    res.status(200).json({ message: 'Successfully liked template' });
-  } catch (err) {
-    console.log(`Error in likeTemplate: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-export const unlikeTemplate: RequestHandler = async (req, res) => {
-  try {
-    const { templateId } = req.params;
-    if (!templateId) {
-      res.status(400).json({ message: 'Template ID is required' });
-      return;
-    }
-
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    await unlikeTemplateQuery(userId, parseInt(templateId));
-
-    res.status(200).json({ message: 'Successfully unliked template' });
-  } catch (err) {
-    console.log(`Error in unlikeTemplate: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-interface ICreateFormParams {
-  templateId?: number;
-}
-interface ICreateFormBody {
-  responses: {
-    questionId: number;
-    answer: string | number | number[];
-  }[];
-}
-export const createForm: RequestHandler<ICreateFormParams, unknown, ICreateFormBody, unknown> = async (req, res) => {
-  try {
-    const { templateId } = req.params;
-    if (!templateId) {
-      res.status(400).json({ message: 'Template ID is required' });
-      return;
-    }
-    
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-    
-    const { responses } = req.body;
-    if (!responses || responses.length === 0) {
-      res.status(400).json({ message: 'Responses are required' });
-      return;
-    }
-
-    await createFormQuery({ filledBy: userId, templateId: templateId, responses });
-
-    res.status(200).json({ message: 'Successfully submitted!' });
-  } catch (err) {
-    console.log(`Error in createForm: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-export const hasUserSubmittedForm: RequestHandler = async (req, res) => {
-  try {
-    const { templateId } = req.params;
-    if (!templateId) {
-      res.status(400).json({ message: 'Template ID is required' });
-      return;
-    }
-
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    const hasSubmitted = await hasUserSubmittedFormQuery(userId, parseInt(templateId));
-
-    res.status(200).json({ hasSubmitted });
-  } catch (err) {
-    console.log(`Error in hasUserSubmittedForm: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-export const getForms: RequestHandler = async (req, res) => {
-  try {
+  getForms = async (req: Request, res: Response) => {
     const templateId = req.templateId;
     if (!templateId) {
       res.status(400).json({ message: 'Template ID is required' });
       return;
     }
 
-    const template = await getTemplateByIdQuery(templateId);
-    const forms = await getFormsQuery(templateId);
+    const template = await this.templateService.getTemplateById(templateId);
+    const forms = await this.templateService.getForms(templateId);
 
     res.status(200).json({ forms, template });
-  } catch (err) {
-    console.log(`Error in getForms: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
+  };
 
-export const getForm: RequestHandler = async (req, res) => {
-  try {
-    const { formId } = req.params;
-    if (!formId) {
-      res.status(400).json({ message: 'Form ID is required' });
-      return;
+  getForm = async (req: Request, res: Response) => {
+    try {
+      const { formId } = req.params;
+      if (!formId) {
+        res.status(400).json({ message: 'Form ID is required' });
+        return;
+      }
+
+      const responses = await this.templateService.getForm(parseInt(formId));
+
+      res.status(200).json(responses);
+    } catch (err) {
+      console.log(`Error in getForm: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
     }
+  };
 
-    const responses = await getFormQuery(parseInt(formId));
+  createTemplate = async (req: Request, res: Response) => {
+    try {
+      const { title, description, topic, type, questions, tags } = req.body;
+      if (!title || !description || !topic || questions.length === 0) {
+        res.status(400).json({
+          message: 'All inputs are required for creating the template',
+        });
+        return;
+      }
 
-    res.status(200).json(responses);
-  } catch (err) {
-    console.log(`Error in getForm: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
 
-export const createComment: RequestHandler = async (req, res) => {
-  try {
+      await this.templateService.createTemplate({
+        title,
+        description,
+        createdBy: userId,
+        topic,
+        type,
+        questions,
+        tags,
+      });
+
+      res.status(200).json({ message: 'Successfully created template' });
+    } catch (err) {
+      console.log(`Error in createTemplate: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
+    }
+  };
+
+  createForm = async (req: Request, res: Response) => {
     const { templateId } = req.params;
     if (!templateId) {
       res.status(400).json({ message: 'Template ID is required' });
-      return;
-    }
-
-    const userId = req.userId;
-    if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    const { content } = req.body;
-    if (!content) {
-      res.status(400).json({ message: 'Content is required' });
-      return;
-    }
-
-    await createCommentQuery(userId, parseInt(templateId), content);
-
-    res.status(200).json({ message: 'Successfully created comment' });
-  } catch (err) {
-    console.log(`Error in createComment: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
-
-export const searchByTag: RequestHandler = async (req, res) => {
-  try {
-    const { tagId } = req.params;
-    if (!tagId) {
-      res.status(400).json({ message: 'Tag ID is required' });
       return;
     }
 
@@ -307,11 +153,79 @@ export const searchByTag: RequestHandler = async (req, res) => {
       return;
     }
 
-    const templates = await searchByTagQuery(userId, parseInt(tagId));
+    const { responses } = req.body;
+    if (!responses || responses.length === 0) {
+      res.status(400).json({ message: 'Responses are required' });
+      return;
+    }
 
-    res.status(200).json(templates);
-  } catch (err) {
-    console.log(`Error in searchByTag: ${err}`);
-    res.status(500).json({ message: 'Internal server err' });
-  }
-};
+    await this.templateService.createForm({
+      filledBy: userId,
+      templateId: parseInt(templateId),
+      responses,
+    });
+
+    res.status(200).json({ message: 'Successfully submitted!' });
+  };
+
+  hasUserSubmittedForm = async (req: Request, res: Response) => {
+    try {
+      const { templateId } = req.params;
+      if (!templateId) {
+        res.status(400).json({ message: 'Template ID is required' });
+        return;
+      }
+
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+
+      const hasSubmitted = await this.templateService.hasUserSubmittedForm(
+        userId,
+        parseInt(templateId)
+      );
+
+      res.status(200).json({ hasSubmitted });
+    } catch (err) {
+      console.log(`Error in hasUserSubmittedForm: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
+    }
+  };
+
+  createComment = async (req: Request, res: Response) => {
+    try {
+      const { templateId } = req.params;
+      if (!templateId) {
+        res.status(400).json({ message: 'Template ID is required' });
+        return;
+      }
+
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+
+      const { content } = req.body;
+      if (!content) {
+        res.status(400).json({ message: 'Content is required' });
+        return;
+      }
+
+      await this.templateService.createComment(
+        userId,
+        parseInt(templateId),
+        content
+      );
+
+      res.status(200).json({ message: 'Successfully created comment' });
+    } catch (err) {
+      console.log(`Error in createComment: ${err}`);
+      res.status(500).json({ message: 'Internal server err' });
+    }
+  };
+}
+
+export default TemplateController;

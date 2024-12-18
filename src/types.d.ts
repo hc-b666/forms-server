@@ -13,14 +13,14 @@ declare global {
     username: string;
     email: string;
     passwordHash: string;
-    role: 'user' | 'admin';
+    role: 'USER' | 'ADMIN';
     isBlocked: boolean;
     createdAt: Date;
   }
 
-  type QuestionType = 'short' | 'paragraph' | 'mcq' | 'checkbox';
+  type QuestionType = 'TEXT' | 'PARAGRAPH' | 'MCQ' | 'CHECKBOX';
 
-  type TemplateTopic = 'edu' | 'quiz' | 'other';
+  type TemplateTopic = 'EDU' | 'QUIZ' | 'OTHER';
 
   interface IProfileTemplate {
     templateId: number;

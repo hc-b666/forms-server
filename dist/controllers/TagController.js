@@ -12,33 +12,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchTags = exports.getTags = void 0;
-const postgresDb_1 = __importDefault(require("../models/postgresDb"));
-const tagQuery_1 = require("../models/queries/tagQuery");
-const getTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const tags = yield postgresDb_1.default.query(tagQuery_1.getTagsSql);
-        res.status(200).json(tags.rows);
+const tagService_1 = __importDefault(require("../services/tagService"));
+class TagController {
+    constructor() {
+        this.getTags = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const tags = yield this.tagService.getTags();
+                res.status(200).json(tags);
+            }
+            catch (err) {
+                console.log(`Error in getTags: ${err}`);
+                res.status(500).json({ message: 'Internal server err' });
+            }
+        });
+        this.searchTags = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { query } = req.query;
+                if (!query || typeof query !== 'string') {
+                    res.status(400).json({ message: 'Invalid query' });
+                    return;
+                }
+                const tags = yield this.tagService.searchTags(query);
+                res.status(200).json(tags);
+            }
+            catch (err) {
+                console.log(`Error in searchTags: ${err}`);
+                res.status(500).json({ message: 'Internal server err' });
+            }
+        });
+        this.tagService = new tagService_1.default();
     }
-    catch (err) {
-        console.log(`Error in getTags: ${err}`);
-        res.status(500).json({ message: 'Internal server err' });
-    }
-});
-exports.getTags = getTags;
-const searchTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { query } = req.query;
-        if (!query || typeof query !== 'string') {
-            res.status(400).json({ message: 'Invalid query' });
-            return;
-        }
-        const tags = yield (0, tagQuery_1.searchTagsQuery)(query);
-        res.status(200).json(tags);
-    }
-    catch (err) {
-        console.log(`Error in searchTags: ${err}`);
-        res.status(500).json({ message: 'Internal server err' });
-    }
-});
-exports.searchTags = searchTags;
+}
+exports.default = TagController;
