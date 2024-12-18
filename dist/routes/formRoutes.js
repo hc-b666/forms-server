@@ -9,6 +9,7 @@ const FormController_1 = __importDefault(require("../controllers/FormController"
 const router = express_1.default.Router();
 const authMiddleware = new AuthMiddleware_1.default();
 const formController = new FormController_1.default();
+router.get('/user', authMiddleware.authenticate, formController.getFormsByUser);
 router.get('/:templateId', authMiddleware.authenticate, authMiddleware.isAuthor, formController.getForms);
 router.get('/:templateId/responses/:formId', authMiddleware.authenticate, authMiddleware.isAuthor, formController.getForm);
 router.post('/check/:templateId', authMiddleware.authenticate, formController.hasUserSubmittedForm);

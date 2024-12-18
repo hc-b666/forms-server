@@ -27,6 +27,21 @@ class FormController {
             const forms = yield this.formService.getForms(templateId);
             res.status(200).json({ forms, template });
         });
+        this.getFormsByUser = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.userId;
+                if (!userId) {
+                    res.status(401).json({ message: 'Unauthorized' });
+                    return;
+                }
+                const forms = yield this.formService.getFormsByUser(userId);
+                res.status(200).json(forms);
+            }
+            catch (err) {
+                console.log(`Error in getFormsByUser: ${err}`);
+                res.status(500).json({ message: 'Internal server err' });
+            }
+        });
         this.getForm = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { formId } = req.params;

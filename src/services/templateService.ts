@@ -155,16 +155,10 @@ class TemplateService {
       : null;
   }
 
-  async getProfile(userId: number) {
+  async getTemplatesByUserId(userId: number) {
     const templates = await this.prisma.template.findMany({
       where: { createdBy: userId },
       include: {
-        creator: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
         tags: {
           include: {
             tag: true,
@@ -187,7 +181,6 @@ class TemplateService {
       description: template.description,
       topic: template.topic,
       createAt: template.createdAt.toISOString(),
-      email: template.creator.email,
       responses: template._count.forms,
       tags: template.tags.map((t) => t.tag.tagName),
     }));

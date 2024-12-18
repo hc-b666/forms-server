@@ -67,10 +67,9 @@ class TemplateController {
         return;
       }
 
-      const templates = await this.templateService.getProfile(parseInt(userId));
-      const user = await this.userService.getUserById(parseInt(userId));
+      const templates = await this.templateService.getTemplatesByUserId(parseInt(userId));
 
-      res.status(200).json({ templates, user });
+      res.status(200).json(templates);
     } catch (err) {
       console.log(`Error in getProfile: ${err}`);
       res.status(500).json({ message: 'Internal server err' });

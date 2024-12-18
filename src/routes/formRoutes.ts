@@ -6,6 +6,8 @@ const router = express.Router();
 const authMiddleware = new AuthMiddleware();
 const formController = new FormController();
 
+router.get('/user', authMiddleware.authenticate, formController.getFormsByUser);
+
 router.get(
   '/:templateId',
   authMiddleware.authenticate,

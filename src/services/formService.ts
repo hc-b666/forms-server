@@ -52,6 +52,47 @@ class FormService {
     }));
   }
 
+  async getFormsByUser(userId: number) {
+    const forms = await this.prisma.form.findMany({
+      select: {
+        id: true,
+        filledAt: true,
+        template: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            topic: true,
+            tags: {
+              select: {
+                tag: {
+                  select: {
+                    id: true,
+                    tagName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      where: {
+        filledBy: userId,
+      },
+      orderBy: {
+        filledAt: 'desc',
+      },
+    });
+
+    return forms.map((f) => ({
+      ...f,
+      template: {
+        ...f.template,
+        tags: f.template.tags.map((t) => t.tag.tagName),
+      },
+    }));
+  }
+
   async getForm(formId: number) {
     const form = await this.prisma.form.findUnique({
       include: {

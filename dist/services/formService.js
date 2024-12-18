@@ -49,6 +49,41 @@ class FormService {
             }));
         });
     }
+    getFormsByUser(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const forms = yield this.prisma.form.findMany({
+                select: {
+                    id: true,
+                    filledAt: true,
+                    template: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            topic: true,
+                            tags: {
+                                select: {
+                                    tag: {
+                                        select: {
+                                            id: true,
+                                            tagName: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                where: {
+                    filledBy: userId,
+                },
+                orderBy: {
+                    filledAt: 'desc',
+                },
+            });
+            return forms.map((f) => (Object.assign(Object.assign({}, f), { template: Object.assign(Object.assign({}, f.template), { tags: f.template.tags.map((t) => t.tag.tagName) }) })));
+        });
+    }
     getForm(formId) {
         return __awaiter(this, void 0, void 0, function* () {
             const form = yield this.prisma.form.findUnique({

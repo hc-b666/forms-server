@@ -64,9 +64,8 @@ class TemplateController {
                     res.status(400).json({ message: 'User ID is required' });
                     return;
                 }
-                const templates = yield this.templateService.getProfile(parseInt(userId));
-                const user = yield this.userService.getUserById(parseInt(userId));
-                res.status(200).json({ templates, user });
+                const templates = yield this.templateService.getTemplatesByUserId(parseInt(userId));
+                res.status(200).json(templates);
             }
             catch (err) {
                 console.log(`Error in getProfile: ${err}`);
