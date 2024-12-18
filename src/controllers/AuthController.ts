@@ -8,10 +8,7 @@ class AuthController {
   private userService: UserService;
 
   constructor() {
-    this.userService = new UserService();
-    this.register = this.register.bind(this);
-    this.login = this.login.bind(this);
-    this.refreshToken = this.refreshToken.bind(this);
+    this.userService = UserService.getInstance();
   }
 
   register = async (req: Request, res: Response) => {

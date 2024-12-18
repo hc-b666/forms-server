@@ -22,6 +22,12 @@ declare global {
 
   type TemplateTopic = 'EDU' | 'QUIZ' | 'OTHER';
 
+  interface IQuestionBody {
+    question: string;
+    type: QuestionType;
+    options: string[];
+  }
+
   interface IProfileTemplate {
     templateId: number;
     title: string;

@@ -5,7 +5,7 @@ class TagController {
   private tagService: TagService;
 
   constructor() {
-    this.tagService = new TagService();
+    this.tagService = TagService.getInstance();
   }
 
   getTags = async (req: Request, res: Response) => {

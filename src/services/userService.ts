@@ -2,15 +2,22 @@ import { PrismaClient, Prisma } from '@prisma/client';
 
 class UserService {
   private prisma: PrismaClient;
+  private static instance: UserService;
 
-  constructor() {
+  private constructor() {
     this.prisma = new PrismaClient();
+  }
+
+  public static getInstance(): UserService {
+    if (!this.instance) {
+      this.instance = new UserService();
+    }
+
+    return this.instance;
   }
 
   async createUser(data: Prisma.UserCreateInput) {
     await this.prisma.user.create({ data });
-
-    return 'User created successfully';
   }
 
   async checkUserExists(email: string) {
@@ -42,6 +49,25 @@ class UserService {
     });
 
     return user ? user : null;
+  }
+
+  async hasUserSubmittedForm(userId: number, templateId: number) {
+    const form = await this.prisma.form.findFirst({
+      where: {
+        filledBy: userId,
+        templateId,
+      },
+    });
+
+    return form ? true : false;
+  }
+
+  async checkIfUserIsAuthorOFTemplate(userId: number, templateId: number) {
+    const template = await this.prisma.template.findFirst({
+      where: { id: templateId, createdBy: userId },
+    });
+
+    return template ? true : false;
   }
 }
 

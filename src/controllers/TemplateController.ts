@@ -2,14 +2,20 @@ import { Request, Response } from 'express';
 
 import TemplateService from '../services/templateService';
 import UserService from '../services/userService';
+import FormService from '../services/formService';
+import CommentService from '../services/commentService';
 
 class TemplateController {
   private templateService: TemplateService;
   private userService: UserService;
+  private formService: FormService;
+  private commentService: CommentService;
 
   constructor() {
-    this.templateService = new TemplateService();
-    this.userService = new UserService();
+    this.templateService = TemplateService.getInstance();
+    this.userService = UserService.getInstance();
+    this.formService = FormService.getInstance();
+    this.commentService = CommentService.getInstance();
   }
 
   getTopTemplates = async (req: Request, res: Response) => {
@@ -85,7 +91,7 @@ class TemplateController {
     }
 
     const template = await this.templateService.getTemplateById(templateId);
-    const forms = await this.templateService.getForms(templateId);
+    const forms = await this.formService.getForms(templateId);
 
     res.status(200).json({ forms, template });
   };
@@ -98,7 +104,7 @@ class TemplateController {
         return;
       }
 
-      const responses = await this.templateService.getForm(parseInt(formId));
+      const responses = await this.formService.getForm(parseInt(formId));
 
       res.status(200).json(responses);
     } catch (err) {
@@ -159,7 +165,7 @@ class TemplateController {
       return;
     }
 
-    await this.templateService.createForm({
+    await this.formService.createForm({
       filledBy: userId,
       templateId: parseInt(templateId),
       responses,
@@ -182,7 +188,7 @@ class TemplateController {
         return;
       }
 
-      const hasSubmitted = await this.templateService.hasUserSubmittedForm(
+      const hasSubmitted = await this.userService.hasUserSubmittedForm(
         userId,
         parseInt(templateId)
       );
@@ -214,7 +220,7 @@ class TemplateController {
         return;
       }
 
-      await this.templateService.createComment(
+      await this.commentService.createComment(
         userId,
         parseInt(templateId),
         content
