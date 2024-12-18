@@ -10,51 +10,39 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-class TagService {
+class QuestionService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
     }
     static getInstance() {
         if (!this.instance) {
-            this.instance = new TagService();
+            this.instance = new QuestionService();
         }
         return this.instance;
     }
-    getTags() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.tag.findMany({ take: 20 });
-        });
-    }
-    searchTags(query) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.tag.findMany({
-                where: {
-                    tagName: {
-                        contains: query,
-                    },
-                },
-                take: 10,
-            });
-        });
-    }
-    createTag(tagName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.tag.upsert({
-                where: { tagName },
-                update: {},
-                create: { tagName },
-            });
-        });
-    }
-    createTemplateTag(templateId, tagId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.templateTag.create({
+    createQuestion(_a, templateId_1) {
+        return __awaiter(this, arguments, void 0, function* ({ question, type, options }, templateId) {
+            const q = yield this.prisma.question.create({
                 data: {
                     templateId,
-                    tagId,
+                    question,
+                    type,
+                },
+            });
+            if ((type === 'MCQ' || type === 'CHECKBOX') && options.length > 0) {
+                options.forEach((option) => __awaiter(this, void 0, void 0, function* () { return this.createQuestionOption(option, q.id); }));
+            }
+        });
+    }
+    createQuestionOption(option, questionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.questionOption.create({
+                data: {
+                    questionId,
+                    option,
                 },
             });
         });
     }
 }
-exports.default = TagService;
+exports.default = QuestionService;

@@ -93,10 +93,7 @@ class AuthController {
                 res.status(500).json({ message: 'Internal server err' });
             }
         });
-        this.userService = new userService_1.default();
-        this.register = this.register.bind(this);
-        this.login = this.login.bind(this);
-        this.refreshToken = this.refreshToken.bind(this);
+        this.userService = userService_1.default.getInstance();
     }
 }
 exports.default = AuthController;

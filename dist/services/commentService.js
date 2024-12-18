@@ -10,51 +10,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-class TagService {
+class CommentService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
     }
     static getInstance() {
         if (!this.instance) {
-            this.instance = new TagService();
+            this.instance = new CommentService();
         }
         return this.instance;
     }
-    getTags() {
+    createComment(templateId, userId, content) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.tag.findMany({ take: 20 });
-        });
-    }
-    searchTags(query) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.tag.findMany({
-                where: {
-                    tagName: {
-                        contains: query,
-                    },
-                },
-                take: 10,
-            });
-        });
-    }
-    createTag(tagName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.tag.upsert({
-                where: { tagName },
-                update: {},
-                create: { tagName },
-            });
-        });
-    }
-    createTemplateTag(templateId, tagId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.templateTag.create({
+            return yield this.prisma.comment.create({
                 data: {
                     templateId,
-                    tagId,
+                    userId,
+                    content,
                 },
             });
         });
     }
 }
-exports.default = TagService;
+exports.default = CommentService;

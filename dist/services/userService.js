@@ -14,10 +14,15 @@ class UserService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
     }
+    static getInstance() {
+        if (!this.instance) {
+            this.instance = new UserService();
+        }
+        return this.instance;
+    }
     createUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.prisma.user.create({ data });
-            return 'User created successfully';
         });
     }
     checkUserExists(email) {
@@ -51,6 +56,25 @@ class UserService {
                 },
             });
             return user ? user : null;
+        });
+    }
+    hasUserSubmittedForm(userId, templateId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const form = yield this.prisma.form.findFirst({
+                where: {
+                    filledBy: userId,
+                    templateId,
+                },
+            });
+            return form ? true : false;
+        });
+    }
+    checkIfUserIsAuthorOFTemplate(userId, templateId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const template = yield this.prisma.template.findFirst({
+                where: { id: templateId, createdBy: userId },
+            });
+            return template ? true : false;
         });
     }
 }

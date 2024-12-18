@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const templateService_1 = __importDefault(require("../services/templateService"));
 const userService_1 = __importDefault(require("../services/userService"));
+const formService_1 = __importDefault(require("../services/formService"));
+const commentService_1 = __importDefault(require("../services/commentService"));
 class TemplateController {
     constructor() {
         this.getTopTemplates = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -80,7 +82,7 @@ class TemplateController {
                 return;
             }
             const template = yield this.templateService.getTemplateById(templateId);
-            const forms = yield this.templateService.getForms(templateId);
+            const forms = yield this.formService.getForms(templateId);
             res.status(200).json({ forms, template });
         });
         this.getForm = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -90,7 +92,7 @@ class TemplateController {
                     res.status(400).json({ message: 'Form ID is required' });
                     return;
                 }
-                const responses = yield this.templateService.getForm(parseInt(formId));
+                const responses = yield this.formService.getForm(parseInt(formId));
                 res.status(200).json(responses);
             }
             catch (err) {
@@ -144,7 +146,7 @@ class TemplateController {
                 res.status(400).json({ message: 'Responses are required' });
                 return;
             }
-            yield this.templateService.createForm({
+            yield this.formService.createForm({
                 filledBy: userId,
                 templateId: parseInt(templateId),
                 responses,
@@ -163,7 +165,7 @@ class TemplateController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const hasSubmitted = yield this.templateService.hasUserSubmittedForm(userId, parseInt(templateId));
+                const hasSubmitted = yield this.userService.hasUserSubmittedForm(userId, parseInt(templateId));
                 res.status(200).json({ hasSubmitted });
             }
             catch (err) {
@@ -188,7 +190,7 @@ class TemplateController {
                     res.status(400).json({ message: 'Content is required' });
                     return;
                 }
-                yield this.templateService.createComment(userId, parseInt(templateId), content);
+                yield this.commentService.createComment(userId, parseInt(templateId), content);
                 res.status(200).json({ message: 'Successfully created comment' });
             }
             catch (err) {
@@ -196,8 +198,10 @@ class TemplateController {
                 res.status(500).json({ message: 'Internal server err' });
             }
         });
-        this.templateService = new templateService_1.default();
-        this.userService = new userService_1.default();
+        this.templateService = templateService_1.default.getInstance();
+        this.userService = userService_1.default.getInstance();
+        this.formService = formService_1.default.getInstance();
+        this.commentService = commentService_1.default.getInstance();
     }
 }
 exports.default = TemplateController;

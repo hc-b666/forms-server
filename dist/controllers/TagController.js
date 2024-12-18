@@ -40,7 +40,7 @@ class TagController {
                 res.status(500).json({ message: 'Internal server err' });
             }
         });
-        this.tagService = new tagService_1.default();
+        this.tagService = tagService_1.default.getInstance();
     }
 }
 exports.default = TagController;
