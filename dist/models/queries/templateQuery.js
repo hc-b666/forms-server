@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchByTagQuery = exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getProfileTemplatesQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getLatestTemplatesSql = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
+exports.searchByTagQuery = exports.unlikeTemplateQuery = exports.likeTemplateQuery = exports.getTemplateByIdQuery = exports.getLatestTemplatesQuery = exports.getLatestTemplatesSql = exports.getTopTemplatesQuery = exports.getTopTemplatesSql = exports.createTemplateQuery = void 0;
 const postgresDb_1 = __importDefault(require("../postgresDb"));
 const createTemplateSql = `
 insert into template ("createdBy", title, description, topic, "isPublic")
@@ -158,37 +158,6 @@ const getTemplateByIdQuery = (templateId) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getTemplateByIdQuery = getTemplateByIdQuery;
-const getProfileTemplatesSql = `
-with templatedata as (
-  select 
-    t.id, 
-    t.title, 
-    t.topic, 
-    t."createdAt",
-    array_agg(distinct ta."tagName") as tags,
-    count(distinct f.id) as "responses"
-  from template t
-  join "user" u ON t."createdBy" = u.id
-  left join form f on t.id = f."templateId"
-  left join "templateTag" tt on t.id = tt."templateId"
-  left join tag ta on tt."tagId" = ta.id
-  where t."createdBy" = $1
-  group by t.id
-)
-select * from templatedata
-order by "createdAt" desc
-`;
-const getProfileTemplatesQuery = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { rows } = yield postgresDb_1.default.query(getProfileTemplatesSql, [userId]);
-        return rows;
-    }
-    catch (err) {
-        console.error(`Error in getProfileQuery: ${err}`);
-        throw err;
-    }
-});
-exports.getProfileTemplatesQuery = getProfileTemplatesQuery;
 const likeTemplateSql = `
 insert into "like" ("userId", "templateId") 
 values ($1, $2)

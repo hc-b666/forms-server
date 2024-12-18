@@ -150,37 +150,6 @@ export const getTemplateByIdQuery = async (templateId: number) => {
   }
 };
 
-const getProfileTemplatesSql = `
-with templatedata as (
-  select 
-    t.id, 
-    t.title, 
-    t.topic, 
-    t."createdAt",
-    array_agg(distinct ta."tagName") as tags,
-    count(distinct f.id) as "responses"
-  from template t
-  join "user" u ON t."createdBy" = u.id
-  left join form f on t.id = f."templateId"
-  left join "templateTag" tt on t.id = tt."templateId"
-  left join tag ta on tt."tagId" = ta.id
-  where t."createdBy" = $1
-  group by t.id
-)
-select * from templatedata
-order by "createdAt" desc
-`;
-
-export const getProfileTemplatesQuery = async (userId: number) => {
-  try {
-    const { rows } = await pool.query(getProfileTemplatesSql, [userId]) as { rows: IProfileTemplate[] };
-    return rows;
-  } catch (err) {
-    console.error(`Error in getProfileQuery: ${err}`);
-    throw err;
-  }
-};
-
 const likeTemplateSql = `
 insert into "like" ("userId", "templateId") 
 values ($1, $2)

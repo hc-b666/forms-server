@@ -1,11 +1,11 @@
 import { RequestHandler } from 'express';
-import { checkIfUserIsAuthorOfTemplateQuery } from '../models/queries/formQuery';
+import TemplateService from '../services/templateService';
 
 export const isAuthorMiddleware: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(403).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
@@ -15,9 +15,9 @@ export const isAuthorMiddleware: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const isAuthor = await checkIfUserIsAuthorOfTemplateQuery(parseInt(req.params.templateId), userId);
+    const isAuthor = await new TemplateService().checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
     if (!isAuthor) {
-      res.status(401).json({ message: 'Action not allowed' });
+      res.status(403).json({ message: 'Action not allowed' });
       return;
     }
 
