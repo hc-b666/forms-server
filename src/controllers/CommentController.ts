@@ -29,8 +29,8 @@ class CommentController {
       }
 
       await this.commentService.createComment(
-        userId,
         parseInt(templateId),
+        userId,
         content
       );
 

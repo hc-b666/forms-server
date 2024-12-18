@@ -116,6 +116,9 @@ class TemplateService {
                                 },
                             },
                         },
+                        orderBy: {
+                            createdAt: 'desc',
+                        }
                     },
                 },
             });
@@ -126,7 +129,10 @@ class TemplateService {
                     description: template.description,
                     topic: template.topic,
                     createAt: template.createdAt.toISOString(),
-                    email: template.creator.email,
+                    creator: {
+                        id: template.creator.id,
+                        email: template.creator.email,
+                    },
                     questions: template.questions.map((q) => ({
                         id: q.id,
                         question: q.question,

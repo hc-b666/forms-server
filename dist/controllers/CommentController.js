@@ -32,7 +32,7 @@ class CommentController {
                     res.status(400).json({ message: 'Content is required' });
                     return;
                 }
-                yield this.commentService.createComment(userId, parseInt(templateId), content);
+                yield this.commentService.createComment(parseInt(templateId), userId, content);
                 res.status(200).json({ message: 'Successfully created comment' });
             }
             catch (err) {
