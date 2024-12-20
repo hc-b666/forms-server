@@ -13,47 +13,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const http_errors_1 = __importDefault(require("http-errors"));
 const userService_1 = __importDefault(require("../services/userService"));
 const jwt_1 = __importDefault(require("../utils/jwt"));
+const validateInput_1 = require("../utils/validateInput");
 class AuthController {
     constructor() {
-        this.register = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.register = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { firstName, lastName, username, email, password } = req.body;
-                if (!firstName || !lastName || !username || !email || !password) {
-                    res.status(400).json({ message: 'All inputs are required for registration' });
-                    return;
-                }
+                (0, validateInput_1.validateInput)(req.body, ['firstName', 'lastName', 'username', 'email', 'password']);
                 const userExists = yield this.userService.checkUserExists(email);
                 if (userExists) {
-                    res.status(409).json({ message: 'User already exists with this email. Please login' });
-                    return;
+                    throw (0, http_errors_1.default)(409, `User already exists with this email. Please login.`);
                 }
                 const passwordHash = yield bcrypt_1.default.hash(password, 10);
                 yield this.userService.createUser({ firstName, lastName, username, email, passwordHash });
                 res.status(200).json({ message: 'Successfully registered!' });
             }
             catch (err) {
-                console.log(`Error at register: ${err}`);
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
-        this.login = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.login = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { email, password } = req.body;
-                if (!email || !password) {
-                    res.status(400).json({ message: 'All inputs are required for logging in' });
-                    return;
-                }
+                (0, validateInput_1.validateInput)(req.body, ['email', 'password']);
                 const user = yield this.userService.getUserByEmail(email);
                 if (!user) {
-                    res.status(400).json({ message: 'Invalid credentials' });
-                    return;
+                    throw (0, http_errors_1.default)(400, `There is no user with this email`);
                 }
                 const isPasswordValid = yield bcrypt_1.default.compare(password, user.passwordHash);
                 if (!isPasswordValid) {
-                    res.status(400).json({ message: 'Wrong password' });
-                    return;
+                    throw (0, http_errors_1.default)(400, `Invalid credentials`);
                 }
                 const accessToken = jwt_1.default.createAccessToken(user.id, user.email);
                 const refreshToken = jwt_1.default.createRefreshToken(user.id, user.email);
@@ -73,24 +65,21 @@ class AuthController {
                 res.status(200).json(response);
             }
             catch (err) {
-                console.log(`Error at login: ${err}`);
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
-        this.refreshToken = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.refreshToken = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { refreshToken } = req.body;
                 if (!refreshToken) {
-                    res.status(401).json({ message: 'Unauthorized' });
-                    return;
+                    throw (0, http_errors_1.default)(401, `Invalid token`);
                 }
                 const decoded = jwt_1.default.verifyToken(refreshToken);
                 const newAccessToken = jwt_1.default.createAccessToken(decoded.userId, decoded.email);
                 res.status(200).json({ accessToken: newAccessToken });
             }
             catch (err) {
-                console.log(`Error at refreshToken: ${err}`);
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
         this.userService = userService_1.default.getInstance();

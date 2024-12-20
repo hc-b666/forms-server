@@ -9,5 +9,5 @@ const AuthMiddleware_1 = __importDefault(require("../middlewares/AuthMiddleware"
 const router = express_1.default.Router();
 const authMiddleware = new AuthMiddleware_1.default();
 const userController = new userController_1.default();
-router.get('/profile/:userId', authMiddleware.authenticate, userController.getUserById);
+router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, userController.getUserById);
 exports.default = router;

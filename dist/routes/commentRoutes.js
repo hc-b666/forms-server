@@ -9,5 +9,5 @@ const AuthMiddleware_1 = __importDefault(require("../middlewares/AuthMiddleware"
 const router = express_1.default.Router();
 const authMiddleware = new AuthMiddleware_1.default();
 const commentController = new CommentController_1.default();
-router.post('/create/:templateId', authMiddleware.authenticate, commentController.createComment);
+router.post('/create/:templateId([0-9]+)', authMiddleware.authenticate, commentController.createComment);
 exports.default = router;

@@ -6,6 +6,6 @@ const router = express.Router();
 const authMiddleware = new AuthMiddleware();
 const commentController = new CommentController();
 
-router.post('/create/:templateId', authMiddleware.authenticate, commentController.createComment);
+router.post('/create/:templateId([0-9]+)', authMiddleware.authenticate, commentController.createComment);
 
 export default router;

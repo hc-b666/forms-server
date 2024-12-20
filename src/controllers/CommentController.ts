@@ -1,4 +1,6 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import createHttpError from 'http-errors';
+
 import CommentService from '../services/commentService';
 
 class CommentController {
@@ -8,36 +10,28 @@ class CommentController {
     this.commentService = CommentService.getInstance();
   }
 
-  createComment = async (req: Request, res: Response) => {
+  createComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { templateId } = req.params;
       if (!templateId) {
-        res.status(400).json({ message: 'Template ID is required' });
-        return;
+        throw createHttpError(400, 'Template Id is required');
       }
 
       const userId = req.userId;
       if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
+        throw createHttpError(401, 'Unauthorized');
       }
 
       const { content } = req.body;
       if (!content) {
-        res.status(400).json({ message: 'Content is required' });
-        return;
+        throw createHttpError(400, 'Content is required to comment');
       }
 
-      await this.commentService.createComment(
-        parseInt(templateId),
-        userId,
-        content
-      );
+      await this.commentService.createComment(parseInt(templateId), userId, content);
 
       res.status(200).json({ message: 'Successfully created comment' });
     } catch (err) {
-      console.log(`Error in createComment: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 }

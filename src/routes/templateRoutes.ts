@@ -8,9 +8,9 @@ const templateController = new TemplateController();
 
 router.get('/top', templateController.getTopTemplates);
 router.get('/latest', templateController.getLatestTemplates);
-router.get('/:templateId', templateController.getTemplateById);
+router.get('/:templateId([0-9]+)', templateController.getTemplateById);
 
-router.get('/profile/:userId', authMiddleware.authenticate, templateController.getProfile);
+router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, templateController.getProfile);
 
 router.post('/create', authMiddleware.authenticate, templateController.createTemplate);
 

@@ -1,8 +1,10 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import createHttpError from 'http-errors';
 
 import UserService from '../services/userService';
 import TokenService from '../utils/jwt';
+import { validateInput } from '../utils/validateInput';
 
 class AuthController {
   private userService: UserService;
@@ -11,18 +13,14 @@ class AuthController {
     this.userService = UserService.getInstance();
   }
 
-  register = async (req: Request, res: Response) => {
+  register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { firstName, lastName, username, email, password } = req.body;
-      if (!firstName || !lastName || !username || !email || !password) {
-        res.status(400).json({ message: 'All inputs are required for registration' });
-        return;
-      }
+      validateInput(req.body, ['firstName', 'lastName', 'username', 'email', 'password']);
 
       const userExists = await this.userService.checkUserExists(email);
       if (userExists) {
-        res.status(409).json({ message: 'User already exists with this email. Please login' });
-        return;
+        throw createHttpError(409, `User already exists with this email. Please login.`);
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
@@ -31,29 +29,23 @@ class AuthController {
 
       res.status(200).json({ message: 'Successfully registered!' });
     } catch (err) {
-      console.log(`Error at register: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   }
 
-  login = async (req: Request, res: Response) => {
+  login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
-      if (!email || !password) {
-        res.status(400).json({ message: 'All inputs are required for logging in' });
-        return;
-      }
+      validateInput(req.body, ['email', 'password']);
 
       const user = await this.userService.getUserByEmail(email);
       if (!user) {
-        res.status(400).json({ message: 'Invalid credentials' });
-        return;
+        throw createHttpError(400, `There is no user with this email`);
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (!isPasswordValid) {
-        res.status(400).json({ message: 'Wrong password' });
-        return;
+        throw createHttpError(400, `Invalid credentials`);
       }
 
       const accessToken = TokenService.createAccessToken(user.id, user.email);
@@ -75,17 +67,15 @@ class AuthController {
 
       res.status(200).json(response);
     } catch (err) {
-      console.log(`Error at login: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   }
 
-  refreshToken = async (req: Request, res: Response) => {
+  refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { refreshToken } = req.body;
       if (!refreshToken) {
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
+        throw createHttpError(401, `Invalid token`);
       }
 
       const decoded = TokenService.verifyToken(refreshToken);
@@ -94,8 +84,7 @@ class AuthController {
 
       res.status(200).json({ accessToken: newAccessToken });
     } catch (err) {
-      console.log(`Error at refreshToken: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   }
 }
