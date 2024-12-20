@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
+import createHttpError from 'http-errors';
+
 import TokenService from '../utils/jwt';
-import { getErrorMessage } from '../utils/getErrorMessage';
 import UserService from '../services/userService';
 
 class AuthMiddleware {
@@ -14,8 +15,7 @@ class AuthMiddleware {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader) {
-        res.status(401).json({ message: 'No authorization header' });
-        return;
+        throw createHttpError(401, 'Authorization header is required');
       }
 
       const token = TokenService.extractTokenFromHeader(authHeader);
@@ -25,8 +25,7 @@ class AuthMiddleware {
       
       next();
     } catch (err) {
-      const message = getErrorMessage(err);
-      res.status(401).json({ message });
+      next(err);
     }
   };
 
@@ -34,27 +33,24 @@ class AuthMiddleware {
     try {
       const userId = req.userId;
       if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
+        throw createHttpError(401, 'Unauthorized');
       }
   
       const { templateId } = req.params;
       if (!templateId || isNaN(parseInt(templateId))) {
-        res.status(400).json({ message: 'Template ID is required' });
-        return;
+        throw createHttpError(400, 'Template Id is required');
       }
   
       const isAuthor = await this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
       if (!isAuthor) {
-        res.status(403).json({ message: 'Action not allowed' });
-        return;
+        throw createHttpError(403, 'Action is not allowed');
       }
   
       req.templateId = parseInt(templateId);
   
       next();
     } catch (err) {
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 }

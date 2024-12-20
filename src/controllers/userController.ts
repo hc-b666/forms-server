@@ -1,5 +1,7 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import UserService from '../services/userService';
+
+import createHttpError from 'http-errors';
 
 class UserController {
   private userService: UserService;
@@ -8,20 +10,18 @@ class UserController {
     this.userService = UserService.getInstance();
   }
 
-  getUserById = async (req: Request, res: Response) => {
+  getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.params;
       if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
+        throw createHttpError(400, 'User Id is required');
       }
 
       const user = await this.userService.getUserById(parseInt(userId));
 
       res.status(200).json(user);
     } catch (err) {
-      console.log(`Error in getUserById: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 }

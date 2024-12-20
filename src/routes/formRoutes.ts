@@ -9,27 +9,27 @@ const formController = new FormController();
 router.get('/user', authMiddleware.authenticate, formController.getFormsByUser);
 
 router.get(
-  '/:templateId',
+  '/:templateId([0-9]+)',
   authMiddleware.authenticate,
   authMiddleware.isAuthor,
   formController.getForms
 );
 
 router.get(
-  '/:templateId/responses/:formId',
+  '/:templateId([0-9]+)/responses/:formId([0-9]+)',
   authMiddleware.authenticate,
   authMiddleware.isAuthor,
   formController.getForm
 );
 
 router.post(
-  '/check/:templateId',
+  '/check/:templateId([0-9]+)',
   authMiddleware.authenticate,
   formController.hasUserSubmittedForm
 );
 
 router.post(
-  '/submit/:templateId',
+  '/submit/:templateId([0-9]+)',
   authMiddleware.authenticate,
   formController.createForm
 );

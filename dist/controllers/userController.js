@@ -13,21 +13,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const userService_1 = __importDefault(require("../services/userService"));
+const http_errors_1 = __importDefault(require("http-errors"));
 class UserController {
     constructor() {
-        this.getUserById = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.getUserById = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { userId } = req.params;
                 if (!userId) {
-                    res.status(400).json({ message: 'User ID is required' });
-                    return;
+                    throw (0, http_errors_1.default)(400, 'User Id is required');
                 }
                 const user = yield this.userService.getUserById(parseInt(userId));
                 res.status(200).json(user);
             }
             catch (err) {
-                console.log(`Error in getUserById: ${err}`);
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
         this.userService = userService_1.default.getInstance();

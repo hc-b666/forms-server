@@ -12,8 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const http_errors_1 = __importDefault(require("http-errors"));
 const jwt_1 = __importDefault(require("../utils/jwt"));
-const getErrorMessage_1 = require("../utils/getErrorMessage");
 const userService_1 = __importDefault(require("../services/userService"));
 class AuthMiddleware {
     constructor() {
@@ -21,8 +21,7 @@ class AuthMiddleware {
             try {
                 const authHeader = req.headers.authorization;
                 if (!authHeader) {
-                    res.status(401).json({ message: 'No authorization header' });
-                    return;
+                    throw (0, http_errors_1.default)(401, 'Authorization header is required');
                 }
                 const token = jwt_1.default.extractTokenFromHeader(authHeader);
                 const decoded = jwt_1.default.verifyToken(token);
@@ -30,32 +29,28 @@ class AuthMiddleware {
                 next();
             }
             catch (err) {
-                const message = (0, getErrorMessage_1.getErrorMessage)(err);
-                res.status(401).json({ message });
+                next(err);
             }
         });
         this.isAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = req.userId;
                 if (!userId) {
-                    res.status(401).json({ message: 'Unauthorized' });
-                    return;
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }
                 const { templateId } = req.params;
                 if (!templateId || isNaN(parseInt(templateId))) {
-                    res.status(400).json({ message: 'Template ID is required' });
-                    return;
+                    throw (0, http_errors_1.default)(400, 'Template Id is required');
                 }
                 const isAuthor = yield this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
                 if (!isAuthor) {
-                    res.status(403).json({ message: 'Action not allowed' });
-                    return;
+                    throw (0, http_errors_1.default)(403, 'Action is not allowed');
                 }
                 req.templateId = parseInt(templateId);
                 next();
             }
             catch (err) {
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
         this.userService = userService_1.default.getInstance();

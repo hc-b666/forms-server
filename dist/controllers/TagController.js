@@ -13,31 +13,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const tagService_1 = __importDefault(require("../services/tagService"));
+const http_errors_1 = __importDefault(require("http-errors"));
 class TagController {
     constructor() {
-        this.getTags = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.getTags = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const tags = yield this.tagService.getTags();
                 res.status(200).json(tags);
             }
             catch (err) {
-                console.log(`Error in getTags: ${err}`);
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
-        this.searchTags = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.searchTags = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { query } = req.query;
                 if (!query || typeof query !== 'string') {
-                    res.status(400).json({ message: 'Invalid query' });
-                    return;
+                    throw (0, http_errors_1.default)(400, 'Query is required to search tags');
                 }
                 const tags = yield this.tagService.searchTags(query);
                 res.status(200).json(tags);
             }
             catch (err) {
-                console.log(`Error in searchTags: ${err}`);
-                res.status(500).json({ message: 'Internal server err' });
+                next(err);
             }
         });
         this.tagService = tagService_1.default.getInstance();

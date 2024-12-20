@@ -1,101 +1,83 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import createHttpError from 'http-errors';
 
 import TemplateService from '../services/templateService';
-import UserService from '../services/userService';
+import { validateInput } from '../utils/validateInput';
 
 class TemplateController {
   private templateService: TemplateService;
-  private userService: UserService;
 
   constructor() {
     this.templateService = TemplateService.getInstance();
-    this.userService = UserService.getInstance();
   }
 
-  getTopTemplates = async (req: Request, res: Response) => {
+  getTopTemplates = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const templates = await this.templateService.getTopTemplates();
 
       res.status(200).json(templates);
     } catch (err) {
-      console.log(`Error in getTopTemplates: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 
-  getLatestTemplates = async (req: Request, res: Response) => {
+  getLatestTemplates = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const templates = await this.templateService.getLatestTemplates();
 
       res.status(200).json(templates);
     } catch (err) {
-      console.log(`Error in getLatestTemplates: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 
-  getTemplateById = async (req: Request, res: Response) => {
+  getTemplateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { templateId } = req.params;
       if (!templateId) {
-        res.status(400).json({ message: 'Template ID is required' });
-        return;
+        throw createHttpError(400, 'Template Id is required');
       }
 
-      const template = await this.templateService.getTemplateById(
-        parseInt(templateId)
-      );
+      const template = await this.templateService.getTemplateById(parseInt(templateId));
       if (!template) {
-        res
-          .status(404)
-          .json({ message: `Template with id ${templateId} not found` });
-        return;
+        throw createHttpError(400, `There is no template with ${templateId}`);
       }
 
       res.status(200).json(template);
     } catch (err) {
-      console.log(`Error in getTemplateById: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 
-  getProfile = async (req: Request, res: Response) => {
+  getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.params;
       if (!userId) {
-        res.status(400).json({ message: 'User ID is required' });
-        return;
+        throw createHttpError(400, 'User id is required');
       }
 
       const templates = await this.templateService.getTemplatesByUserId(parseInt(userId));
 
       res.status(200).json(templates);
     } catch (err) {
-      console.log(`Error in getProfile: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 
-  createTemplate = async (req: Request, res: Response) => {
+  createTemplate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { title, description, topic, type, questions, tags } = req.body;
-      if (!title || !description || !topic || questions.length === 0) {
-        res.status(400).json({
-          message: 'All inputs are required for creating the template',
-        });
-        return;
-      }
+      validateInput(req.body, ['title', 'description', 'topic', 'type', 'questions', 'tags']);
 
-      const userId = req.userId;
-      if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
+      const createdBy = req.userId;
+      if (!createdBy) {
+        throw createHttpError(401, 'Unauthorized');
       }
 
       await this.templateService.createTemplate({
         title,
         description,
-        createdBy: userId,
+        createdBy,
         topic,
         type,
         questions,
@@ -104,8 +86,7 @@ class TemplateController {
 
       res.status(200).json({ message: 'Successfully created template' });
     } catch (err) {
-      console.log(`Error in createTemplate: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 }

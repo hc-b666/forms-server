@@ -1,5 +1,7 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+
 import TagService from '../services/tagService';
+import createHttpError from 'http-errors';
 
 class TagController {
   private tagService: TagService;
@@ -8,31 +10,28 @@ class TagController {
     this.tagService = TagService.getInstance();
   }
 
-  getTags = async (req: Request, res: Response) => {
+  getTags = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const tags = await this.tagService.getTags();
 
       res.status(200).json(tags);
     } catch (err) {
-      console.log(`Error in getTags: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 
-  searchTags = async (req: Request, res: Response) => {
+  searchTags = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query } = req.query;
       if (!query || typeof query !== 'string') {
-        res.status(400).json({ message: 'Invalid query' });
-        return;
+        throw createHttpError(400, 'Query is required to search tags');
       }
 
       const tags = await this.tagService.searchTags(query);
 
       res.status(200).json(tags);
     } catch (err) {
-      console.log(`Error in searchTags: ${err}`);
-      res.status(500).json({ message: 'Internal server err' });
+      next(err);
     }
   };
 }

@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import createHttpError from 'http-errors';
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ class TokenService {
   private static getTokenKey(): string {
     const token_key = process.env.TOKEN_KEY;
     if (!token_key) {
-      throw new Error('TOKEN_KEY is not defined in .env file');
+      throw createHttpError(500, 'Internal server error');
     }
 
     return token_key;
@@ -31,14 +32,13 @@ class TokenService {
     try {
       return jwt.verify(token, this.getTokenKey()) as ITokenPayload;
     } catch (err) {
-      console.log(`Error at verifyToken: ${err}`);
-      throw new Error('Invalid or expired token');
+      throw createHttpError(401, 'Unauthorized');
     }
   }
 
   static extractTokenFromHeader(authHeader: string) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new Error('Invalid authorization header');
+      throw createHttpError(401, 'Invalid authorization header');
     }
 
     return authHeader.split(' ')[1];
