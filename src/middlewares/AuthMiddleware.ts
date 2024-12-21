@@ -57,6 +57,22 @@ class AuthMiddleware {
       next(err);
     }
   };
+
+  isAdmin: RequestHandler = async (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+
+      if (req.user.role !== 'ADMIN') {
+        throw createHttpError(403, 'Forbidden - You are not allowed');
+      }
+
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default AuthMiddleware;

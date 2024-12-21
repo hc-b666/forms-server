@@ -31,7 +31,20 @@ class UserService {
   }
 
   async getUsers() {
-    return this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+        email: true,
+        isBlocked: true,
+        role: true,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
   }
 
   async getUserById(userId: number) {

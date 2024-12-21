@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
-import UserService from '../services/userService';
-
+import { RequestHandler } from 'express';
 import createHttpError from 'http-errors';
+
+import UserService from '../services/userService';
 
 class UserController {
   private userService: UserService;
@@ -10,7 +10,7 @@ class UserController {
     this.userService = UserService.getInstance();
   }
 
-  getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  getUserById: RequestHandler = async (req, res, next) => {
     try {
       const { userId } = req.params;
       if (!userId) {
@@ -20,6 +20,16 @@ class UserController {
       const user = await this.userService.getUserById(parseInt(userId));
 
       res.status(200).json(user);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getUsers: RequestHandler = async (req, res, next) => {
+    try {
+      const users = await this.userService.getUsers();
+
+      res.status(200).json(users);
     } catch (err) {
       next(err);
     }

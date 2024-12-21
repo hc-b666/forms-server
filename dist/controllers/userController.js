@@ -12,8 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const userService_1 = __importDefault(require("../services/userService"));
 const http_errors_1 = __importDefault(require("http-errors"));
+const userService_1 = __importDefault(require("../services/userService"));
 class UserController {
     constructor() {
         this.getUserById = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
@@ -24,6 +24,15 @@ class UserController {
                 }
                 const user = yield this.userService.getUserById(parseInt(userId));
                 res.status(200).json(user);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.getUsers = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const users = yield this.userService.getUsers();
+                res.status(200).json(users);
             }
             catch (err) {
                 next(err);

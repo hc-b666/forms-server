@@ -38,7 +38,20 @@ class UserService {
     }
     getUsers() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.prisma.user.findMany();
+            return yield this.prisma.user.findMany({
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    username: true,
+                    email: true,
+                    isBlocked: true,
+                    role: true,
+                },
+                orderBy: {
+                    id: 'asc',
+                },
+            });
         });
     }
     getUserById(userId) {

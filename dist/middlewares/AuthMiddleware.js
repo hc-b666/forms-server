@@ -58,6 +58,20 @@ class AuthMiddleware {
                 next(err);
             }
         });
+        this.isAdmin = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!req.user) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
+                if (req.user.role !== 'ADMIN') {
+                    throw (0, http_errors_1.default)(403, 'Forbidden - You are not allowed');
+                }
+                next();
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.userService = userService_1.default.getInstance();
     }
 }
