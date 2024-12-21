@@ -48,8 +48,8 @@ class AuthController {
         throw createHttpError(400, `Invalid credentials`);
       }
 
-      const accessToken = TokenService.createAccessToken(user.id, user.email);
-      const refreshToken = TokenService.createRefreshToken(user.id, user.email);
+      const accessToken = TokenService.createAccessToken(user.id, user.email, user.role);
+      const refreshToken = TokenService.createRefreshToken(user.id, user.email, user.role);
 
       const response = {
         accessToken,
@@ -80,7 +80,7 @@ class AuthController {
 
       const decoded = TokenService.verifyToken(refreshToken);
 
-      const newAccessToken = TokenService.createAccessToken(decoded.userId, decoded.email);
+      const newAccessToken = TokenService.createAccessToken(decoded.userId, decoded.email, decoded.role);
 
       res.status(200).json({ accessToken: newAccessToken });
     } catch (err) {

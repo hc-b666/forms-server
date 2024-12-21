@@ -47,8 +47,8 @@ class AuthController {
                 if (!isPasswordValid) {
                     throw (0, http_errors_1.default)(400, `Invalid credentials`);
                 }
-                const accessToken = jwt_1.default.createAccessToken(user.id, user.email);
-                const refreshToken = jwt_1.default.createRefreshToken(user.id, user.email);
+                const accessToken = jwt_1.default.createAccessToken(user.id, user.email, user.role);
+                const refreshToken = jwt_1.default.createRefreshToken(user.id, user.email, user.role);
                 const response = {
                     accessToken,
                     refreshToken,
@@ -75,7 +75,7 @@ class AuthController {
                     throw (0, http_errors_1.default)(401, `Invalid token`);
                 }
                 const decoded = jwt_1.default.verifyToken(refreshToken);
-                const newAccessToken = jwt_1.default.createAccessToken(decoded.userId, decoded.email);
+                const newAccessToken = jwt_1.default.createAccessToken(decoded.userId, decoded.email, decoded.role);
                 res.status(200).json({ accessToken: newAccessToken });
             }
             catch (err) {

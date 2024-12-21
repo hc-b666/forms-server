@@ -1,6 +1,12 @@
+import { QuestionType, TemplateTopic, UserRole } from "@prisma/client";
+
 declare module 'express-serve-static-core' {
   interface Request {
-    userId?: number;
+    user?: {
+      id: number;
+      email: string;
+      role: UserRole;
+    };
     templateId?: number;
   }
 }
@@ -13,14 +19,10 @@ declare global {
     username: string;
     email: string;
     passwordHash: string;
-    role: 'USER' | 'ADMIN';
+    role: UserRole;
     isBlocked: boolean;
     createdAt: Date;
   }
-
-  type QuestionType = 'TEXT' | 'PARAGRAPH' | 'MCQ' | 'CHECKBOX';
-
-  type TemplateTopic = 'EDU' | 'QUIZ' | 'OTHER';
 
   interface IQuestionBody {
     question: string;

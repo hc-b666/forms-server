@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import createHttpError from 'http-errors';
+import { UserRole } from '@prisma/client';
 
 dotenv.config();
 
@@ -8,6 +9,7 @@ interface ITokenPayload extends JwtPayload {
   userId: number;
   email: string;
   exp: number;
+  role: UserRole;
 }
 
 class TokenService {
@@ -20,12 +22,16 @@ class TokenService {
     return token_key;
   }
 
-  static createAccessToken(userId: number, email: string) {
-    return jwt.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 });
+  private static createToken(userId: number, email: string, role: UserRole, amount: number) {
+    return jwt.sign({ userId, email, role }, this.getTokenKey(), { expiresIn: amount });
   }
 
-  static createRefreshToken(userId: number, email: string) {
-    return jwt.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 * 24 * 7 });
+  static createAccessToken(userId: number, email: string, role: UserRole) {
+    return this.createToken(userId, email, role, 60 * 60 * 24);
+  }
+
+  static createRefreshToken(userId: number, email: string, role: UserRole) {
+    return this.createToken(userId, email, role, 60 * 60 * 24 * 7);
   }
 
   static verifyToken(token: string): ITokenPayload {

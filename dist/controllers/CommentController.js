@@ -17,12 +17,13 @@ const commentService_1 = __importDefault(require("../services/commentService"));
 class CommentController {
     constructor() {
         this.createComment = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const { templateId } = req.params;
                 if (!templateId) {
                     throw (0, http_errors_1.default)(400, 'Template Id is required');
                 }
-                const userId = req.userId;
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!userId) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }

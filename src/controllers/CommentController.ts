@@ -17,7 +17,7 @@ class CommentController {
         throw createHttpError(400, 'Template Id is required');
       }
 
-      const userId = req.userId;
+      const userId = req.user?.id;
       if (!userId) {
         throw createHttpError(401, 'Unauthorized');
       }

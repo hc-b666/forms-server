@@ -65,10 +65,11 @@ class TemplateController {
             }
         });
         this.createTemplate = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const { title, description, topic, type, questions, tags } = req.body;
                 (0, validateInput_1.validateInput)(req.body, ['title', 'description', 'topic', 'type', 'questions', 'tags']);
-                const createdBy = req.userId;
+                const createdBy = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!createdBy) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }

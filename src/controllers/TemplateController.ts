@@ -69,7 +69,7 @@ class TemplateController {
       const { title, description, topic, type, questions, tags } = req.body;
       validateInput(req.body, ['title', 'description', 'topic', 'type', 'questions', 'tags']);
 
-      const createdBy = req.userId;
+      const createdBy = req.user?.id;
       if (!createdBy) {
         throw createHttpError(401, 'Unauthorized');
       }

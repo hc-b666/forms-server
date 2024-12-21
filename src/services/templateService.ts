@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TemplateTopic } from '@prisma/client';
 import TagService from './tagService';
 import QuestionService from './questionService';
 

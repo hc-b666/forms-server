@@ -25,7 +25,11 @@ class AuthMiddleware {
                 }
                 const token = jwt_1.default.extractTokenFromHeader(authHeader);
                 const decoded = jwt_1.default.verifyToken(token);
-                req.userId = decoded.userId;
+                req.user = {
+                    id: decoded.userId,
+                    email: decoded.email,
+                    role: decoded.role
+                };
                 next();
             }
             catch (err) {
@@ -33,8 +37,9 @@ class AuthMiddleware {
             }
         });
         this.isAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
-                const userId = req.userId;
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!userId) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }

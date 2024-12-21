@@ -15,11 +15,14 @@ class TokenService {
         }
         return token_key;
     }
-    static createAccessToken(userId, email) {
-        return jsonwebtoken_1.default.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 });
+    static createToken(userId, email, role, amount) {
+        return jsonwebtoken_1.default.sign({ userId, email, role }, this.getTokenKey(), { expiresIn: amount });
     }
-    static createRefreshToken(userId, email) {
-        return jsonwebtoken_1.default.sign({ userId, email }, this.getTokenKey(), { expiresIn: 60 * 60 * 24 * 7 });
+    static createAccessToken(userId, email, role) {
+        return this.createToken(userId, email, role, 60 * 60 * 24);
+    }
+    static createRefreshToken(userId, email, role) {
+        return this.createToken(userId, email, role, 60 * 60 * 24 * 7);
     }
     static verifyToken(token) {
         try {

@@ -21,7 +21,11 @@ class AuthMiddleware {
       const token = TokenService.extractTokenFromHeader(authHeader);
       const decoded = TokenService.verifyToken(token);
 
-      req.userId = decoded.userId;
+      req.user = { 
+        id: decoded.userId, 
+        email: decoded.email, 
+        role: decoded.role 
+      };
       
       next();
     } catch (err) {
@@ -31,7 +35,7 @@ class AuthMiddleware {
 
   isAuthor: RequestHandler = async (req, res, next) => {
     try {
-      const userId = req.userId;
+      const userId = req.user?.id;
       if (!userId) {
         throw createHttpError(401, 'Unauthorized');
       }

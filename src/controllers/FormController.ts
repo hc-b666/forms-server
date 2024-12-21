@@ -34,7 +34,7 @@ class FormController {
 
   getFormsByUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.userId;
+      const userId = req.user?.id;
       if (!userId) {
         throw createHttpError(401, 'Unauthorized');
       }
@@ -69,7 +69,7 @@ class FormController {
         throw createHttpError(400, 'Template Id is required');
       }
   
-      const userId = req.userId;
+      const userId = req.user?.id;
       if (!userId) {
         throw createHttpError(401, 'Unauthorized');
       }
@@ -98,7 +98,7 @@ class FormController {
         throw createHttpError(400, 'Template Id is required');
       }
 
-      const userId = req.userId;
+      const userId = req.user?.id;
       if (!userId) {
         throw createHttpError(401, 'Unauthorized');
       }
