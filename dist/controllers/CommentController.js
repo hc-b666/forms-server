@@ -16,6 +16,19 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const commentService_1 = __importDefault(require("../services/commentService"));
 class CommentController {
     constructor() {
+        this.getCommentsByTemplateId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { templateId } = req.params;
+                if (!templateId) {
+                    throw (0, http_errors_1.default)(400, 'Template Id is required');
+                }
+                const comments = yield this.commentService.getCommentByTemplateId(parseInt(templateId));
+                res.status(200).json(comments);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.createComment = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {

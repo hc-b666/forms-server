@@ -111,19 +111,6 @@ class TemplateService {
             tag: true,
           },
         },
-        comments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          }
-        },
       },
     });
 
@@ -145,12 +132,6 @@ class TemplateService {
             options: q.options,
           })),
           tags: template.tags.map((t) => t.tag.tagName),
-          comments: template.comments.map((c) => ({
-            id: c.id,
-            content: c.content,
-            createAt: c.createdAt.toISOString(),
-            email: c.user.email,
-          })),
         }
       : null;
   }

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import createHttpError from 'http-errors';
 
 import CommentService from '../services/commentService';
@@ -10,7 +10,22 @@ class CommentController {
     this.commentService = CommentService.getInstance();
   }
 
-  createComment = async (req: Request, res: Response, next: NextFunction) => {
+  getCommentsByTemplateId: RequestHandler = async (req, res, next) => {
+    try {
+      const { templateId } = req.params;
+      if (!templateId) {
+        throw createHttpError(400, 'Template Id is required');
+      }
+
+      const comments = await this.commentService.getCommentByTemplateId(parseInt(templateId));
+
+      res.status(200).json(comments);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  createComment: RequestHandler = async (req, res, next) => {
     try {
       const { templateId } = req.params;
       if (!templateId) {
