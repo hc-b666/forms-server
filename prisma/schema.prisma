@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -68,11 +62,12 @@ model Template {
 }
 
 model Question {
-  id         Int          @id @default(autoincrement())
-  templateId Int
-  template   Template     @relation(fields: [templateId], references: [id])
-  question   String       @db.Text
-  type       QuestionType
+  id           Int          @id @default(autoincrement())
+  templateId   Int
+  template     Template     @relation(fields: [templateId], references: [id])
+  questionText String       @db.Text
+  type         QuestionType
+  order        Int
 
   options   QuestionOption[]
   responses Response[]
@@ -89,8 +84,8 @@ model QuestionOption {
 
 model Form {
   id         Int      @id @default(autoincrement())
-  filledBy   Int
-  user       User     @relation(fields: [filledBy], references: [id])
+  authorId   Int
+  author     User     @relation(fields: [authorId], references: [id])
   templateId Int
   template   Template @relation(fields: [templateId], references: [id])
   filledAt   DateTime @default(now())
@@ -99,11 +94,11 @@ model Form {
 }
 
 model Response {
-  id         Int            @id @default(autoincrement())
+  id         Int             @id @default(autoincrement())
   formId     Int
-  form       Form           @relation(fields: [formId], references: [id])
+  form       Form            @relation(fields: [formId], references: [id])
   questionId Int
-  question   Question       @relation(fields: [questionId], references: [id])
+  question   Question        @relation(fields: [questionId], references: [id])
   answer     String?         @db.Text
   optionId   Int?
   option     QuestionOption? @relation(fields: [optionId], references: [id])
@@ -119,8 +114,8 @@ model AccessControl {
 
 model Comment {
   id         Int      @id @default(autoincrement())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
+  authorId   Int
+  author     User     @relation(fields: [authorId], references: [id])
   templateId Int
   template   Template @relation(fields: [templateId], references: [id])
   content    String   @db.Text
