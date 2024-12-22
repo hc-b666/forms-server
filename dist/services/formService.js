@@ -27,9 +27,11 @@ class FormService {
     }
     getForms(templateId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const forms = yield this.prisma.form.findMany({
-                include: {
-                    user: {
+            return yield this.prisma.form.findMany({
+                select: {
+                    id: true,
+                    filledAt: true,
+                    author: {
                         select: {
                             id: true,
                             email: true,
@@ -41,15 +43,9 @@ class FormService {
                     filledAt: 'desc',
                 },
             });
-            return forms.map((f) => ({
-                formId: f.id,
-                filledAt: f.filledAt.toISOString(),
-                email: f.user.email,
-                filledBy: f.filledBy,
-            }));
         });
     }
-    getFormsByUser(userId) {
+    getFormsByUser(authorId) {
         return __awaiter(this, void 0, void 0, function* () {
             const forms = yield this.prisma.form.findMany({
                 select: {
@@ -75,7 +71,7 @@ class FormService {
                     },
                 },
                 where: {
-                    filledBy: userId,
+                    authorId,
                 },
                 orderBy: {
                     filledAt: 'desc',
@@ -105,7 +101,7 @@ class FormService {
                 if (!responses.has(r.questionId)) {
                     responses.set(r.questionId, {
                         questionId: r.questionId,
-                        question: r.question.question,
+                        questionText: r.question.questionText,
                         type: r.question.type,
                         responseId: r.id,
                         answer: r.answer,
@@ -125,10 +121,10 @@ class FormService {
         });
     }
     createForm(_a) {
-        return __awaiter(this, arguments, void 0, function* ({ filledBy, templateId, responses }) {
+        return __awaiter(this, arguments, void 0, function* ({ authorId, templateId, responses }) {
             const form = yield this.prisma.form.create({
                 data: {
-                    filledBy,
+                    authorId,
                     templateId,
                 },
             });

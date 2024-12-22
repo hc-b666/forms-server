@@ -69,8 +69,8 @@ class FormController {
         throw createHttpError(400, 'Template Id is required');
       }
   
-      const userId = req.user?.id;
-      if (!userId) {
+      const authorId = req.user?.id;
+      if (!authorId) {
         throw createHttpError(401, 'Unauthorized');
       }
   
@@ -80,7 +80,7 @@ class FormController {
       }
   
       await this.formService.createForm({
-        filledBy: userId,
+        authorId,
         templateId: parseInt(templateId),
         responses,
       });

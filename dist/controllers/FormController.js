@@ -66,8 +66,8 @@ class FormController {
                 if (!templateId) {
                     throw (0, http_errors_1.default)(400, 'Template Id is required');
                 }
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-                if (!userId) {
+                const authorId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                if (!authorId) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }
                 const { responses } = req.body;
@@ -75,7 +75,7 @@ class FormController {
                     throw (0, http_errors_1.default)(400, 'Responses are requried to submit form');
                 }
                 yield this.formService.createForm({
-                    filledBy: userId,
+                    authorId,
                     templateId: parseInt(templateId),
                     responses,
                 });

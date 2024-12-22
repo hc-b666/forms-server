@@ -21,12 +21,13 @@ class QuestionService {
         return this.instance;
     }
     createQuestion(_a, templateId_1) {
-        return __awaiter(this, arguments, void 0, function* ({ questionText, type, options }, templateId) {
+        return __awaiter(this, arguments, void 0, function* ({ questionText, type, options, order }, templateId) {
             const q = yield this.prisma.question.create({
                 data: {
                     templateId,
-                    question: questionText,
+                    questionText,
                     type,
+                    order,
                 },
             });
             if ((type === 'MCQ' || type === 'CHECKBOX') && options.length > 0) {

@@ -20,12 +20,12 @@ class CommentService {
         }
         return this.instance;
     }
-    createComment(templateId, userId, content) {
+    createComment(templateId, authorId, content) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.prisma.comment.create({
                 data: {
                     templateId,
-                    userId,
+                    authorId,
                     content,
                 },
             });
@@ -33,12 +33,12 @@ class CommentService {
     }
     getCommentByTemplateId(templateId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const comments = yield this.prisma.comment.findMany({
+            return yield this.prisma.comment.findMany({
                 select: {
                     id: true,
                     content: true,
                     createdAt: true,
-                    user: {
+                    author: {
                         select: {
                             id: true,
                             email: true,
@@ -52,7 +52,6 @@ class CommentService {
                     createdAt: 'desc',
                 },
             });
-            return comments;
         });
     }
 }

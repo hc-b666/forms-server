@@ -148,7 +148,7 @@ class TemplateService {
           },
           questions: template.questions.map((q) => ({
             id: q.id,
-            question: q.question,
+            questionText: q.questionText,
             type: q.type,
             options: q.options,
           })),

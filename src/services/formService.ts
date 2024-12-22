@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import ResponseService from './responseService';
 
 interface ICreateForm {
-  filledBy: number;
+  authorId: number;
   templateId: number;
   responses: {
     questionId: number;
@@ -29,9 +29,11 @@ class FormService {
   }
 
   async getForms(templateId: number) {
-    const forms = await this.prisma.form.findMany({
-      include: {
-        user: {
+    return await this.prisma.form.findMany({
+      select: {
+        id: true,        
+        filledAt: true,
+        author: {
           select: {
             id: true,
             email: true,
@@ -43,16 +45,9 @@ class FormService {
         filledAt: 'desc',
       },
     });
-
-    return forms.map((f) => ({
-      formId: f.id,
-      filledAt: f.filledAt.toISOString(),
-      email: f.user.email,
-      filledBy: f.filledBy,
-    }));
   }
 
-  async getFormsByUser(userId: number) {
+  async getFormsByUser(authorId: number) {
     const forms = await this.prisma.form.findMany({
       select: {
         id: true,
@@ -77,7 +72,7 @@ class FormService {
         },
       },
       where: {
-        filledBy: userId,
+        authorId,
       },
       orderBy: {
         filledAt: 'desc',
@@ -114,7 +109,7 @@ class FormService {
       if (!responses.has(r.questionId)) {
         responses.set(r.questionId, {
           questionId: r.questionId,
-          question: r.question.question,
+          questionText: r.question.questionText,
           type: r.question.type,
           responseId: r.id,
           answer: r.answer,
@@ -133,10 +128,10 @@ class FormService {
     return Array.from(responses.values());
   }
 
-  async createForm({ filledBy, templateId, responses }: ICreateForm) {
+  async createForm({ authorId, templateId, responses }: ICreateForm) {
     const form = await this.prisma.form.create({
       data: {
-        filledBy,
+        authorId,
         templateId,
       },
     });

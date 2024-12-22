@@ -25,6 +25,7 @@ declare global {
   }
 
   interface IQuestionBody {
+    order: number;
     questionText: string;
     type: QuestionType;
     options: string[];
@@ -103,7 +104,7 @@ declare global {
 
   interface IResponse {
     questionId: number;
-    question: string;
+    questionText: string;
     type: QuestionType;
     responseId: number;
     answer: string | null;

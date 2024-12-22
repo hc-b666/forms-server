@@ -64,10 +64,10 @@ class UserService {
     return user ? user : null;
   }
 
-  async hasUserSubmittedForm(userId: number, templateId: number) {
+  async hasUserSubmittedForm(authorId: number, templateId: number) {
     const form = await this.prisma.form.findFirst({
       where: {
-        filledBy: userId,
+        authorId,
         templateId,
       },
     });

@@ -71,11 +71,11 @@ class UserService {
             return user ? user : null;
         });
     }
-    hasUserSubmittedForm(userId, templateId) {
+    hasUserSubmittedForm(authorId, templateId) {
         return __awaiter(this, void 0, void 0, function* () {
             const form = yield this.prisma.form.findFirst({
                 where: {
-                    filledBy: userId,
+                    authorId,
                     templateId,
                 },
             });
