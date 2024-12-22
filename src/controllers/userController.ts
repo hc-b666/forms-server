@@ -18,6 +18,9 @@ class UserController {
       }
 
       const user = await this.userService.getUserById(parseInt(userId));
+      if (user === null) {
+        throw createHttpError(400, 'There is no user with this id');
+      }
 
       res.status(200).json(user);
     } catch (err) {

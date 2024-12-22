@@ -25,6 +25,10 @@ class AuthMiddleware {
                 }
                 const token = jwt_1.default.extractTokenFromHeader(authHeader);
                 const decoded = jwt_1.default.verifyToken(token);
+                const exists = yield this.userService.checkUserExists(decoded.email);
+                if (!exists) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
                 req.user = {
                     id: decoded.userId,
                     email: decoded.email,

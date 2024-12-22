@@ -80,6 +80,11 @@ class AuthController {
 
       const decoded = TokenService.verifyToken(refreshToken);
 
+      const exists = await this.userService.checkUserExists(decoded.email);
+      if (!exists) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+
       const newAccessToken = TokenService.createAccessToken(decoded.userId, decoded.email, decoded.role);
 
       res.status(200).json({ accessToken: newAccessToken });

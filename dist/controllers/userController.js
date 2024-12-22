@@ -23,6 +23,9 @@ class UserController {
                     throw (0, http_errors_1.default)(400, 'User Id is required');
                 }
                 const user = yield this.userService.getUserById(parseInt(userId));
+                if (user === null) {
+                    throw (0, http_errors_1.default)(400, 'There is no user with this id');
+                }
                 res.status(200).json(user);
             }
             catch (err) {

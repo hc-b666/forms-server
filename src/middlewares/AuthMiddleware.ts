@@ -21,6 +21,11 @@ class AuthMiddleware {
       const token = TokenService.extractTokenFromHeader(authHeader);
       const decoded = TokenService.verifyToken(token);
 
+      const exists = await this.userService.checkUserExists(decoded.email);
+      if (!exists) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+
       req.user = { 
         id: decoded.userId, 
         email: decoded.email, 

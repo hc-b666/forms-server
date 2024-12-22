@@ -75,6 +75,10 @@ class AuthController {
                     throw (0, http_errors_1.default)(401, `Invalid token`);
                 }
                 const decoded = jwt_1.default.verifyToken(refreshToken);
+                const exists = yield this.userService.checkUserExists(decoded.email);
+                if (!exists) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
                 const newAccessToken = jwt_1.default.createAccessToken(decoded.userId, decoded.email, decoded.role);
                 res.status(200).json({ accessToken: newAccessToken });
             }
