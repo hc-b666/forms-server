@@ -16,7 +16,7 @@ class QuestionService {
     return this.instance;
   }
 
-  async createQuestion({ questionText, type, options, order }: IQuestionBody, templateId: number) {
+  async createQuestion({ questionText, type, options, order }: Question, templateId: number) {
     const q = await this.prisma.question.create({
       data: {
         templateId,

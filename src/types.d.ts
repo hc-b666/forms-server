@@ -24,7 +24,7 @@ declare global {
     createdAt: Date;
   }
 
-  interface IQuestionBody {
+  interface Question {
     order: number;
     questionText: string;
     type: QuestionType;

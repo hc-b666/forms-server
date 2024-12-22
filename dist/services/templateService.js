@@ -122,6 +122,9 @@ class TemplateService {
                         include: {
                             options: true,
                         },
+                        orderBy: {
+                            order: 'asc',
+                        },
                     },
                     tags: {
                         include: {

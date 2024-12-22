@@ -8,7 +8,7 @@ interface ICreateTemplateBody {
   createdBy: number;
   topic: TemplateTopic;
   type: 'public' | 'private';
-  questions: IQuestionBody[];
+  questions: Question[];
   tags: string[];
 }
 
@@ -125,6 +125,9 @@ class TemplateService {
         questions: {
           include: {
             options: true,
+          },
+          orderBy: {
+            order: 'asc',
           },
         },
         tags: {
