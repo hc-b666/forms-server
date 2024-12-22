@@ -25,7 +25,7 @@ declare global {
   }
 
   interface IQuestionBody {
-    question: string;
+    questionText: string;
     type: QuestionType;
     options: string[];
   }

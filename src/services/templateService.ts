@@ -34,9 +34,17 @@ class TemplateService {
 
   async getTopTemplates() {
     const templates = await this.prisma.template.findMany({
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
         _count: {
-          select: { likes: true, forms: true },
+          select: { 
+            likes: true, 
+            forms: true 
+          },
         },
         creator: {
           select: {
@@ -58,16 +66,27 @@ class TemplateService {
       title: template.title,
       description: template.description,
       topic: template.topic,
-      createAt: template.createdAt.toISOString(),
-      email: template.creator.email,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
       responses: template._count.forms,
-      totalLikes: template._count.likes,
+      likes: template._count.likes,
     }));
   }
 
   async getLatestTemplates() {
     const templates = await this.prisma.template.findMany({
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
+        _count: {
+          select: {
+            likes: true,
+            forms: true,
+          },
+        },
         creator: {
           select: {
             id: true,
@@ -86,8 +105,10 @@ class TemplateService {
       title: template.title,
       description: template.description,
       topic: template.topic,
-      createAt: template.createdAt.toISOString(),
-      email: template.creator.email,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      likes: template._count.likes,
     }));
   }
 

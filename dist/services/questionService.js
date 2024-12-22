@@ -21,11 +21,11 @@ class QuestionService {
         return this.instance;
     }
     createQuestion(_a, templateId_1) {
-        return __awaiter(this, arguments, void 0, function* ({ question, type, options }, templateId) {
+        return __awaiter(this, arguments, void 0, function* ({ questionText, type, options }, templateId) {
             const q = yield this.prisma.question.create({
                 data: {
                     templateId,
-                    question,
+                    question: questionText,
                     type,
                 },
             });

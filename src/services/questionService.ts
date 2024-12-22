@@ -16,11 +16,11 @@ class QuestionService {
     return this.instance;
   }
 
-  async createQuestion({ question, type, options }: IQuestionBody, templateId: number) {
+  async createQuestion({ questionText, type, options }: IQuestionBody, templateId: number) {
     const q = await this.prisma.question.create({
       data: {
         templateId,
-        question,
+        question: questionText,
         type,
       },
     });

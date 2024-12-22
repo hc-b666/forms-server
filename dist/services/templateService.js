@@ -30,9 +30,17 @@ class TemplateService {
     getTopTemplates() {
         return __awaiter(this, void 0, void 0, function* () {
             const templates = yield this.prisma.template.findMany({
-                include: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    topic: true,
+                    createdAt: true,
                     _count: {
-                        select: { likes: true, forms: true },
+                        select: {
+                            likes: true,
+                            forms: true
+                        },
                     },
                     creator: {
                         select: {
@@ -53,17 +61,28 @@ class TemplateService {
                 title: template.title,
                 description: template.description,
                 topic: template.topic,
-                createAt: template.createdAt.toISOString(),
-                email: template.creator.email,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
                 responses: template._count.forms,
-                totalLikes: template._count.likes,
+                likes: template._count.likes,
             }));
         });
     }
     getLatestTemplates() {
         return __awaiter(this, void 0, void 0, function* () {
             const templates = yield this.prisma.template.findMany({
-                include: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    topic: true,
+                    createdAt: true,
+                    _count: {
+                        select: {
+                            likes: true,
+                            forms: true,
+                        },
+                    },
                     creator: {
                         select: {
                             id: true,
@@ -81,8 +100,10 @@ class TemplateService {
                 title: template.title,
                 description: template.description,
                 topic: template.topic,
-                createAt: template.createdAt.toISOString(),
-                email: template.creator.email,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
+                responses: template._count.forms,
+                likes: template._count.likes,
             }));
         });
     }
