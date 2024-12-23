@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import createHttpError from 'http-errors';
 
 import TemplateService from '../services/templateService';
@@ -11,7 +11,7 @@ class TemplateController {
     this.templateService = TemplateService.getInstance();
   }
 
-  getTopTemplates = async (req: Request, res: Response, next: NextFunction) => {
+  getTopTemplates: RequestHandler = async (req, res, next) => {
     try {
       const templates = await this.templateService.getTopTemplates();
 
@@ -21,7 +21,7 @@ class TemplateController {
     }
   };
 
-  getLatestTemplates = async (req: Request, res: Response, next: NextFunction) => {
+  getLatestTemplates: RequestHandler = async (req, res, next) => {
     try {
       const templates = await this.templateService.getLatestTemplates();
 
@@ -31,7 +31,7 @@ class TemplateController {
     }
   };
 
-  getTemplateById = async (req: Request, res: Response, next: NextFunction) => {
+  getTemplateById: RequestHandler = async (req, res, next) => {
     try {
       const { templateId } = req.params;
       if (!templateId) {
@@ -49,7 +49,7 @@ class TemplateController {
     }
   };
 
-  getProfile = async (req: Request, res: Response, next: NextFunction) => {
+  getProfile: RequestHandler = async (req, res, next) => {
     try {
       const { userId } = req.params;
       if (!userId) {
@@ -64,9 +64,37 @@ class TemplateController {
     }
   };
 
-  createTemplate = async (req: Request, res: Response, next: NextFunction) => {
+  getPrivateTemplatesByUserId: RequestHandler = async (req, res, next) => {
     try {
-      const { title, description, topic, type, questions, tags } = req.body;
+      const user = req.user;
+      if (!user) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+
+      const templates = await this.templateService.getPrivateTemplatesByUserId(user.id);
+      res.status(200).json(templates);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getPrivateTemplatesForAccessibleUser: RequestHandler = async (req, res, next) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+
+      const templates = await this.templateService.getPrivateTemplatesForAccessibleUser(user.id);
+      res.status(200).json(templates);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  createTemplate: RequestHandler = async (req, res, next) => {
+    try {
+      const { title, description, topic, type, questions, tags, users } = req.body;
       validateInput(req.body, ['title', 'description', 'topic', 'type', 'questions', 'tags']);
 
       const createdBy = req.user?.id;
@@ -82,6 +110,7 @@ class TemplateController {
         type,
         questions,
         tags,
+        users,
       });
 
       res.status(200).json({ message: 'Successfully created template' });

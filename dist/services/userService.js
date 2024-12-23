@@ -90,5 +90,23 @@ class UserService {
             return template ? true : false;
         });
     }
+    searchUserByEmail(query, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.user.findMany({
+                select: {
+                    id: true,
+                    email: true,
+                },
+                where: {
+                    id: {
+                        not: userId,
+                    },
+                    email: {
+                        contains: query,
+                    },
+                },
+            });
+        });
+    }
 }
 exports.default = UserService;

@@ -82,6 +82,23 @@ class UserService {
 
     return template ? true : false;
   }
+
+  async searchUserByEmail(query: string, userId: number) {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+      },
+      where: {
+        id: {
+          not: userId,
+        },
+        email: {
+          contains: query,
+        },
+      },
+    });
+  }
 }
 
 export default UserService;

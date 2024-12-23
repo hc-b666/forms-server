@@ -64,10 +64,36 @@ class TemplateController {
                 next(err);
             }
         });
+        this.getPrivateTemplatesByUserId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = req.user;
+                if (!user) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
+                const templates = yield this.templateService.getPrivateTemplatesByUserId(user.id);
+                res.status(200).json(templates);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.getPrivateTemplatesForAccessibleUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = req.user;
+                if (!user) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
+                const templates = yield this.templateService.getPrivateTemplatesForAccessibleUser(user.id);
+                res.status(200).json(templates);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.createTemplate = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
-                const { title, description, topic, type, questions, tags } = req.body;
+                const { title, description, topic, type, questions, tags, users } = req.body;
                 (0, validateInput_1.validateInput)(req.body, ['title', 'description', 'topic', 'type', 'questions', 'tags']);
                 const createdBy = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!createdBy) {
@@ -81,6 +107,7 @@ class TemplateController {
                     type,
                     questions,
                     tags,
+                    users,
                 });
                 res.status(200).json({ message: 'Successfully created template' });
             }

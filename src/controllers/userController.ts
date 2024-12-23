@@ -37,6 +37,22 @@ class UserController {
       next(err);
     }
   };
+
+  searchUserByEmail: RequestHandler = async (req, res, next) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+
+      const { query } = req.query as { query: string };
+
+      const users = await this.userService.searchUserByEmail(query, user.id); 
+      res.status(200).json(users);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default UserController;

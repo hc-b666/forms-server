@@ -41,6 +41,20 @@ class UserController {
                 next(err);
             }
         });
+        this.searchUserByEmail = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = req.user;
+                if (!user) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
+                const { query } = req.query;
+                const users = yield this.userService.searchUserByEmail(query, user.id);
+                res.status(200).json(users);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.userService = userService_1.default.getInstance();
     }
 }
