@@ -256,7 +256,7 @@ class TemplateService {
                 where: { userId },
                 orderBy: {
                     template: {
-                        createdBy: 'desc',
+                        createdAt: 'desc',
                     },
                 },
             });
@@ -265,9 +265,49 @@ class TemplateService {
                 title: accessible.template.title,
                 description: accessible.template.description,
                 topic: accessible.template.topic,
-                createdAt: accessible.template.createdAt,
+                createdAt: accessible.template.createdAt.toISOString(),
                 responses: accessible.template._count.forms,
                 tags: accessible.template.tags.map(t => t.tag.tagName),
+            }));
+        });
+    }
+    getTemplatesByTagId(tagId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const templates = yield this.prisma.template.findMany({
+                include: {
+                    tags: {
+                        select: {
+                            tag: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            forms: true,
+                        },
+                    },
+                },
+                where: {
+                    tags: {
+                        some: {
+                            tagId,
+                        },
+                    },
+                    AND: {
+                        isPublic: true,
+                    },
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+            return templates.map((t) => ({
+                id: t.id,
+                title: t.title,
+                description: t.description,
+                topic: t.topic,
+                createdAt: t.createdAt.toISOString(),
+                responses: t._count.forms,
+                tags: t.tags.map(t => t.tag.tagName),
             }));
         });
     }
