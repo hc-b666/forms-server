@@ -33,6 +33,47 @@ class TemplateService {
     return this.instance;
   }
 
+  async getTemplates() {
+    const templates = await this.prisma.template.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
+        _count: {
+          select: { 
+            likes: true, 
+            forms: true 
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+      where: {
+        isPublic: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      likes: template._count.likes,
+    }));
+  }
+
   async getTopTemplates() {
     const templates = await this.prisma.template.findMany({
       select: {
@@ -347,6 +388,21 @@ class TemplateService {
     }
 
     return template;
+  }
+
+  async searchTemplates(query: string) {
+    const templates = await this.prisma.template.findMany({
+      where: {
+        OR: [
+          { title: { search: query } },
+          { description: { search: query } },
+          { questions: { some: { questionText: { search: query } } } },
+          { tags: { some: { tag: { tagName: { search: query } } } } },
+        ], 
+      },
+    });
+
+    return templates;
   }
 }
 
