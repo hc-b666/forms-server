@@ -72,6 +72,9 @@ class FormService {
                 },
                 where: {
                     authorId,
+                    template: {
+                        deletedAt: null,
+                    },
                 },
                 orderBy: {
                     filledAt: 'desc',
