@@ -118,6 +118,48 @@ class TemplateController {
       next(err);
     }
   };
+
+  searchTemplates: RequestHandler = async (req, res, next) => {
+    try {
+      const { query } = req.query;
+      if (!query || typeof query !== 'string') {
+        throw createHttpError(400, 'Query is required to search templates');
+      }
+
+      const templates = await this.templateService.searchTemplates(query);
+
+      res.status(200).json(templates);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  searchTemplatesByTagId: RequestHandler = async (req, res, next) => {
+    try {
+      const { tagId } = req.params;
+      if (!tagId || tagId === 'null') {
+        const templates = await this.templateService.getTemplates();
+        res.status(200).json(templates);
+        return;
+      }
+
+      const templates = await this.templateService.getTemplatesByTagId(parseInt(tagId));
+
+      res.status(200).json(templates);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getTemplates: RequestHandler = async (req, res, next) => {
+    try {
+      const templates = await this.templateService.getTemplates();
+
+      res.status(200).json(templates);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default TemplateController;

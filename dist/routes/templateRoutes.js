@@ -9,9 +9,12 @@ const TemplateController_1 = __importDefault(require("../controllers/TemplateCon
 const router = express_1.default.Router();
 const authMiddleware = new AuthMiddleware_1.default();
 const templateController = new TemplateController_1.default();
+router.get('/', templateController.getTemplates);
 router.get('/top', templateController.getTopTemplates);
 router.get('/latest', templateController.getLatestTemplates);
 router.get('/:templateId([0-9]+)', templateController.getTemplateById);
+router.get('/search', templateController.searchTemplates);
+router.get('/search/:tagId', templateController.searchTemplatesByTagId);
 router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, templateController.getProfile);
 router.get('/profile/private', authMiddleware.authenticate, templateController.getPrivateTemplatesByUserId);
 router.get('/profile/private/templates', authMiddleware.authenticate, templateController.getPrivateTemplatesForAccessibleUser);

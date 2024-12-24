@@ -115,6 +115,43 @@ class TemplateController {
                 next(err);
             }
         });
+        this.searchTemplates = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { query } = req.query;
+                if (!query || typeof query !== 'string') {
+                    throw (0, http_errors_1.default)(400, 'Query is required to search templates');
+                }
+                const templates = yield this.templateService.searchTemplates(query);
+                res.status(200).json(templates);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.searchTemplatesByTagId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { tagId } = req.params;
+                if (!tagId || tagId === 'null') {
+                    const templates = yield this.templateService.getTemplates();
+                    res.status(200).json(templates);
+                    return;
+                }
+                const templates = yield this.templateService.getTemplatesByTagId(parseInt(tagId));
+                res.status(200).json(templates);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.getTemplates = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const templates = yield this.templateService.getTemplates();
+                res.status(200).json(templates);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.templateService = templateService_1.default.getInstance();
     }
 }

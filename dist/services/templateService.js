@@ -27,6 +27,47 @@ class TemplateService {
         }
         return this.instance;
     }
+    getTemplates() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const templates = yield this.prisma.template.findMany({
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    topic: true,
+                    createdAt: true,
+                    _count: {
+                        select: {
+                            likes: true,
+                            forms: true
+                        },
+                    },
+                    creator: {
+                        select: {
+                            id: true,
+                            email: true,
+                        },
+                    },
+                },
+                where: {
+                    isPublic: true,
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+            return templates.map((template) => ({
+                id: template.id,
+                title: template.title,
+                description: template.description,
+                topic: template.topic,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
+                responses: template._count.forms,
+                likes: template._count.likes,
+            }));
+        });
+    }
     getTopTemplates() {
         return __awaiter(this, void 0, void 0, function* () {
             const templates = yield this.prisma.template.findMany({
@@ -340,6 +381,49 @@ class TemplateService {
                 }));
             }
             return template;
+        });
+    }
+    searchTemplates(query) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const templates = yield this.prisma.template.findMany({
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    topic: true,
+                    createdAt: true,
+                    _count: {
+                        select: {
+                            likes: true,
+                            forms: true
+                        },
+                    },
+                    creator: {
+                        select: {
+                            id: true,
+                            email: true,
+                        },
+                    },
+                },
+                where: {
+                    OR: [
+                        { title: { search: query } },
+                        { description: { search: query } },
+                        { questions: { some: { questionText: { search: query } } } },
+                        { tags: { some: { tag: { tagName: { search: query } } } } },
+                    ],
+                },
+            });
+            return templates.map((template) => ({
+                id: template.id,
+                title: template.title,
+                description: template.description,
+                topic: template.topic,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
+                responses: template._count.forms,
+                likes: template._count.likes,
+            }));
         });
     }
 }
