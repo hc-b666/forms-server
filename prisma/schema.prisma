@@ -144,4 +144,6 @@ model TemplateTag {
   tag        Tag      @relation(fields: [tagId], references: [id])
   templateId Int
   template   Template @relation(fields: [templateId], references: [id])
+
+  @@unique([tagId, templateId])
 }

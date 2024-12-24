@@ -152,6 +152,24 @@ class TemplateController {
                 next(err);
             }
         });
+        this.editTemplate = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const templateId = req.templateId;
+                if (!templateId) {
+                    throw (0, http_errors_1.default)(400, 'Template Id is required');
+                }
+                const { title, description, topic, tags } = req.body;
+                (0, validateInput_1.validateInput)(req.body, ['title', 'description', 'topic', 'tags']);
+                const result = yield this.templateService.editTemplateDetails(templateId, { title, description, topic, tags });
+                if (!result) {
+                    throw (0, http_errors_1.default)(400, 'Could not update template');
+                }
+                res.status(200).json({ message: 'Successfully updated template' });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.templateService = templateService_1.default.getInstance();
     }
 }

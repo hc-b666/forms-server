@@ -25,6 +25,19 @@ class TagService {
             return yield this.prisma.tag.findMany({ take: 20 });
         });
     }
+    getTagsByTemplateId(templateId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tags = yield this.prisma.templateTag.findMany({
+                where: {
+                    templateId,
+                },
+                include: {
+                    tag: true,
+                },
+            });
+            return tags.map((tag) => tag.tag);
+        });
+    }
     searchTags(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.prisma.tag.findMany({
@@ -52,6 +65,18 @@ class TagService {
                 data: {
                     templateId,
                     tagId,
+                },
+            });
+        });
+    }
+    deleteTemplateTag(templateId, tagId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.templateTag.delete({
+                where: {
+                    tagId_templateId: {
+                        tagId,
+                        templateId,
+                    },
                 },
             });
         });

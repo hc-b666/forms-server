@@ -160,6 +160,27 @@ class TemplateController {
       next(err);
     }
   };
+
+  editTemplate: RequestHandler = async (req, res, next) => {
+    try {
+      const templateId = req.templateId;
+      if (!templateId) {
+        throw createHttpError(400, 'Template Id is required');
+      }
+
+      const { title, description, topic, tags } = req.body;
+      validateInput(req.body, ['title', 'description', 'topic', 'tags']);
+      
+      const result = await this.templateService.editTemplateDetails(templateId, { title, description, topic, tags });
+      if (!result) {
+        throw createHttpError(400, 'Could not update template');
+      }
+
+      res.status(200).json({ message: 'Successfully updated template' });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default TemplateController;

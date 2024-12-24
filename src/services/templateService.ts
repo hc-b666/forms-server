@@ -2,7 +2,7 @@ import { PrismaClient, TemplateTopic } from '@prisma/client';
 import TagService from './tagService';
 import QuestionService from './questionService';
 
-interface ICreateTemplateBody {
+interface CreateTemplateBody {
   title: string;
   description: string;
   createdBy: number;
@@ -11,6 +11,13 @@ interface ICreateTemplateBody {
   questions: Question[];
   tags: string[];
   users: number[];
+}
+
+interface EditTemplateDetails {
+  title: string;
+  description: string;
+  topic: TemplateTopic;
+  tags: string[];
 }
 
 class TemplateService {
@@ -358,7 +365,7 @@ class TemplateService {
     }));
   }
 
-  async createTemplate(data: ICreateTemplateBody) {
+  async createTemplate(data: CreateTemplateBody) {
     const template = await this.prisma.template.create({
       data: {
         title: data.title,
@@ -431,6 +438,42 @@ class TemplateService {
       responses: template._count.forms,
       likes: template._count.likes,
     }));
+  }
+
+  async editTemplateDetails(templateId: number, data: EditTemplateDetails) {
+    const template = await this.prisma.template.findUnique({
+      where: { id: templateId },
+    });
+
+    if (!template) {
+      return false;
+    }
+
+    await this.prisma.template.update({
+      where: { id: templateId },
+      data: {
+        title: data.title,
+        description: data.description,
+        topic: data.topic,
+      },
+    });
+
+    const tags = await this.tagService.getTagsByTemplateId(templateId);
+    const tagNames = tags.map(t => t.tagName);
+
+    const newTags = data.tags.filter(tag => !tagNames.includes(tag));
+    const oldTags = tags.filter(t => !data.tags.includes(t.tagName));
+
+    newTags.forEach(async tagName => {
+      const tag = await this.tagService.createTag(tagName);
+      await this.tagService.createTemplateTag(templateId, tag.id);
+    });
+
+    oldTags.forEach(async tag => {
+      await this.tagService.deleteTemplateTag(templateId, tag.id);
+    });
+
+    return true;
   }
 }
 

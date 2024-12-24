@@ -426,5 +426,35 @@ class TemplateService {
             }));
         });
     }
+    editTemplateDetails(templateId, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const template = yield this.prisma.template.findUnique({
+                where: { id: templateId },
+            });
+            if (!template) {
+                return false;
+            }
+            yield this.prisma.template.update({
+                where: { id: templateId },
+                data: {
+                    title: data.title,
+                    description: data.description,
+                    topic: data.topic,
+                },
+            });
+            const tags = yield this.tagService.getTagsByTemplateId(templateId);
+            const tagNames = tags.map(t => t.tagName);
+            const newTags = data.tags.filter(tag => !tagNames.includes(tag));
+            const oldTags = tags.filter(t => !data.tags.includes(t.tagName));
+            newTags.forEach((tagName) => __awaiter(this, void 0, void 0, function* () {
+                const tag = yield this.tagService.createTag(tagName);
+                yield this.tagService.createTemplateTag(templateId, tag.id);
+            }));
+            oldTags.forEach((tag) => __awaiter(this, void 0, void 0, function* () {
+                yield this.tagService.deleteTemplateTag(templateId, tag.id);
+            }));
+            return true;
+        });
+    }
 }
 exports.default = TemplateService;

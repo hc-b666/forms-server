@@ -12,12 +12,25 @@ class TagService {
     if (!this.instance) {
       this.instance = new TagService();
     }
-    
+
     return this.instance;
   }
 
   async getTags() {
     return await this.prisma.tag.findMany({ take: 20 });
+  }
+
+  async getTagsByTemplateId(templateId: number) {
+    const tags = await this.prisma.templateTag.findMany({
+      where: {
+        templateId,
+      },
+      include: {
+        tag: true,
+      },
+    });
+
+    return tags.map((tag) => tag.tag);
   }
 
   async searchTags(query: string) {
@@ -44,6 +57,17 @@ class TagService {
       data: {
         templateId,
         tagId,
+      },
+    });
+  }
+
+  async deleteTemplateTag(templateId: number, tagId: number) {
+    return await this.prisma.templateTag.delete({
+      where: {
+        tagId_templateId: {
+          tagId,
+          templateId,
+        },
       },
     });
   }
