@@ -49,9 +49,9 @@ class TemplateService {
         topic: true,
         createdAt: true,
         _count: {
-          select: { 
-            likes: true, 
-            forms: true 
+          select: {
+            likes: true,
+            forms: true,
           },
         },
         creator: {
@@ -63,6 +63,7 @@ class TemplateService {
       },
       where: {
         isPublic: true,
+        deletedAt: null,
       },
       orderBy: {
         createdAt: 'desc',
@@ -90,9 +91,9 @@ class TemplateService {
         topic: true,
         createdAt: true,
         _count: {
-          select: { 
-            likes: true, 
-            forms: true 
+          select: {
+            likes: true,
+            forms: true,
           },
         },
         creator: {
@@ -104,6 +105,7 @@ class TemplateService {
       },
       where: {
         isPublic: true,
+        deletedAt: null,
       },
       orderBy: {
         forms: {
@@ -148,6 +150,7 @@ class TemplateService {
       },
       where: {
         isPublic: true,
+        deletedAt: null,
       },
       orderBy: {
         createdAt: 'desc',
@@ -218,11 +221,10 @@ class TemplateService {
 
   async getTemplatesByUserId(userId: number) {
     const templates = await this.prisma.template.findMany({
-      where: { 
+      where: {
         createdBy: userId,
-        AND: {
-          isPublic: true,
-        }
+        isPublic: true,
+        deletedAt: null,
       },
       include: {
         tags: {
@@ -256,9 +258,8 @@ class TemplateService {
     const templates = await this.prisma.template.findMany({
       where: {
         createdBy: userId,
-        AND: {
-          isPublic: false,
-        },
+        isPublic: false,
+        deletedAt: null,
       },
       include: {
         tags: {
@@ -284,7 +285,7 @@ class TemplateService {
       topic: template.topic,
       createdAt: template.createdAt.toISOString(),
       responses: template._count.forms,
-      tags: template.tags.map(t => t.tag.tagName),
+      tags: template.tags.map((t) => t.tag.tagName),
     }));
   }
 
@@ -306,7 +307,13 @@ class TemplateService {
           },
         },
       },
-      where: { userId },
+      where: { 
+        userId, 
+        template: { 
+          isPublic: false, 
+          deletedAt: null 
+        } 
+      },
       orderBy: {
         template: {
           createdAt: 'desc',
@@ -321,8 +328,8 @@ class TemplateService {
       topic: accessible.template.topic,
       createdAt: accessible.template.createdAt.toISOString(),
       responses: accessible.template._count.forms,
-      tags: accessible.template.tags.map(t => t.tag.tagName),
-    })); 
+      tags: accessible.template.tags.map((t) => t.tag.tagName),
+    }));
   }
 
   async getTemplatesByTagId(tagId: number) {
@@ -345,9 +352,8 @@ class TemplateService {
             tagId,
           },
         },
-        AND: {
-          isPublic: true,
-        },
+        isPublic: true,
+        deletedAt: null,
       },
       orderBy: {
         createdAt: 'desc',
@@ -361,7 +367,7 @@ class TemplateService {
       topic: t.topic,
       createdAt: t.createdAt.toISOString(),
       responses: t._count.forms,
-      tags: t.tags.map(t => t.tag.tagName),
+      tags: t.tags.map((t) => t.tag.tagName),
     }));
   }
 
@@ -376,19 +382,23 @@ class TemplateService {
       },
     });
 
-    if (data.type === "private") {
-      data.users.forEach(async (userId) => this.prisma.accessControl.create({
-        data: {
-          templateId: template.id,
-          userId,
-        },
-      }));
+    if (data.type === 'private') {
+      data.users.forEach(async (userId) =>
+        this.prisma.accessControl.create({
+          data: {
+            templateId: template.id,
+            userId,
+          },
+        })
+      );
     }
 
-    data.questions.forEach(async q => this.questionService.createQuestion(q, template.id));
+    data.questions.forEach(async (q) =>
+      this.questionService.createQuestion(q, template.id)
+    );
 
     if (data.tags && data.tags.length > 0) {
-      data.tags.forEach(async tagName => {
+      data.tags.forEach(async (tagName) => {
         const tag = await this.tagService.createTag(tagName);
         await this.tagService.createTemplateTag(template.id, tag.id);
       });
@@ -406,9 +416,9 @@ class TemplateService {
         topic: true,
         createdAt: true,
         _count: {
-          select: { 
-            likes: true, 
-            forms: true 
+          select: {
+            likes: true,
+            forms: true,
           },
         },
         creator: {
@@ -419,12 +429,14 @@ class TemplateService {
         },
       },
       where: {
+        isPublic: true,
+        deletedAt: null,
         OR: [
           { title: { search: query } },
           { description: { search: query } },
           { questions: { some: { questionText: { search: query } } } },
           { tags: { some: { tag: { tagName: { search: query } } } } },
-        ], 
+        ],
       },
     });
 
@@ -459,21 +471,32 @@ class TemplateService {
     });
 
     const tags = await this.tagService.getTagsByTemplateId(templateId);
-    const tagNames = tags.map(t => t.tagName);
+    const tagNames = tags.map((t) => t.tagName);
 
-    const newTags = data.tags.filter(tag => !tagNames.includes(tag));
-    const oldTags = tags.filter(t => !data.tags.includes(t.tagName));
+    const newTags = data.tags.filter((tag) => !tagNames.includes(tag));
+    const oldTags = tags.filter((t) => !data.tags.includes(t.tagName));
 
-    newTags.forEach(async tagName => {
+    newTags.forEach(async (tagName) => {
       const tag = await this.tagService.createTag(tagName);
       await this.tagService.createTemplateTag(templateId, tag.id);
     });
 
-    oldTags.forEach(async tag => {
+    oldTags.forEach(async (tag) => {
       await this.tagService.deleteTemplateTag(templateId, tag.id);
     });
 
     return true;
+  }
+
+  async deleteTemplate(templateId: number) {
+    await this.prisma.template.update({
+      where: {
+        id: templateId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }
 

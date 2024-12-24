@@ -170,6 +170,19 @@ class TemplateController {
                 next(err);
             }
         });
+        this.deleteTemplate = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const templateId = req.templateId;
+                if (!templateId) {
+                    throw (0, http_errors_1.default)(400, 'Template Id is required');
+                }
+                yield this.templateService.deleteTemplate(templateId);
+                res.status(200).json({ message: 'Successfully deleted template' });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.templateService = templateService_1.default.getInstance();
     }
 }

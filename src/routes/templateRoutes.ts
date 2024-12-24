@@ -21,4 +21,6 @@ router.post('/create', authMiddleware.authenticate, templateController.createTem
 
 router.put('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isAuthor, templateController.editTemplate);
 
+router.delete('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isAuthor, templateController.deleteTemplate);
+
 export default router;

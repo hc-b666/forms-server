@@ -181,6 +181,21 @@ class TemplateController {
       next(err);
     }
   };
+
+  deleteTemplate: RequestHandler = async (req, res, next) => {
+    try {
+      const templateId = req.templateId;
+      if (!templateId) {
+        throw createHttpError(400, 'Template Id is required');
+      }
+
+      await this.templateService.deleteTemplate(templateId);
+
+      res.status(200).json({ message: 'Successfully deleted template' });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export default TemplateController;

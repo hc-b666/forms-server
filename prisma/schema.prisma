@@ -53,6 +53,7 @@ model Template {
   createdAt   DateTime      @default(now())
   topic       TemplateTopic
   isPublic    Boolean       @default(false)
+  deletedAt   DateTime?
 
   questions      Question[]
   forms          Form[]
@@ -84,12 +85,13 @@ model QuestionOption {
 }
 
 model Form {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   authorId   Int
-  author     User     @relation(fields: [authorId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id])
   templateId Int
-  template   Template @relation(fields: [templateId], references: [id])
-  filledAt   DateTime @default(now())
+  template   Template  @relation(fields: [templateId], references: [id])
+  filledAt   DateTime  @default(now())
+  deletedAt  DateTime?
 
   responses Response[]
 }
@@ -114,13 +116,14 @@ model AccessControl {
 }
 
 model Comment {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   authorId   Int
-  author     User     @relation(fields: [authorId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id])
   templateId Int
-  template   Template @relation(fields: [templateId], references: [id])
-  content    String   @db.Text
-  createdAt  DateTime @default(now())
+  template   Template  @relation(fields: [templateId], references: [id])
+  content    String    @db.Text
+  createdAt  DateTime  @default(now())
+  deletedAt  DateTime?
 }
 
 model Like {
