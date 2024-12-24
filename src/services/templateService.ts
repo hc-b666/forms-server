@@ -392,6 +392,25 @@ class TemplateService {
 
   async searchTemplates(query: string) {
     const templates = await this.prisma.template.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
+        _count: {
+          select: { 
+            likes: true, 
+            forms: true 
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
       where: {
         OR: [
           { title: { search: query } },
@@ -402,7 +421,16 @@ class TemplateService {
       },
     });
 
-    return templates;
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      likes: template._count.likes,
+    }));
   }
 }
 
