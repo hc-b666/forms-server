@@ -343,6 +343,13 @@ class TemplateService {
         _count: {
           select: {
             forms: true,
+            likes: true,
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            email: true,
           },
         },
       },
@@ -367,7 +374,12 @@ class TemplateService {
       topic: t.topic,
       createdAt: t.createdAt.toISOString(),
       responses: t._count.forms,
+      likes: t._count.likes,
       tags: t.tags.map((t) => t.tag.tagName),
+      creator: {
+        id: t.creator.id,
+        email: t.creator.email,
+      },
     }));
   }
 
