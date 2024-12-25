@@ -7,6 +7,7 @@ import commentRoutes from './commentRoutes';
 import tagRoutes from './tagRoutes';
 import userRoutes from './userRoutes';
 import adminRoutes from './adminRoutes';
+import likeRoutes from './likeRoutes';
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.use('/comments', commentRoutes);
 router.use('/tags', tagRoutes);
 router.use('/user', userRoutes);
 router.use('/admin', adminRoutes);
+router.use('/likes', likeRoutes);
 
 export default router;

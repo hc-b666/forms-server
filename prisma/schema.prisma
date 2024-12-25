@@ -132,6 +132,8 @@ model Like {
   user       User     @relation(fields: [userId], references: [id])
   templateId Int
   template   Template @relation(fields: [templateId], references: [id])
+
+  @@unique([userId, templateId])
 }
 
 model Tag {

@@ -20,6 +20,25 @@ interface EditTemplateDetails {
   tags: string[];
 }
 
+interface TemplateSelect {
+  id: true;
+  title: true;
+  description: true;
+  topic: true;
+  createdAt: true;
+  _count: {
+    select: {
+      forms: true;
+    };
+  };
+  creator: {
+    select: {
+      id: true;
+      email: true;
+    };
+  };
+}
+
 class TemplateService {
   private prisma: PrismaClient;
   private tagService: TagService;
@@ -40,134 +59,77 @@ class TemplateService {
     return this.instance;
   }
 
-  async getTemplates() {
-    const templates = await this.prisma.template.findMany({
+  private readonly defaultSelect: TemplateSelect = {
+    id: true,
+    title: true,
+    description: true,
+    topic: true,
+    createdAt: true,
+    _count: {
+      select: {
+        forms: true,
+      },
+    },
+    creator: {
       select: {
         id: true,
-        title: true,
-        description: true,
-        topic: true,
-        createdAt: true,
-        _count: {
-          select: {
-            likes: true,
-            forms: true,
-          },
-        },
-        creator: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
+        email: true,
       },
-      where: {
-        isPublic: true,
-        deletedAt: null,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    },
+  }
 
-    return templates.map((template) => ({
+  private readonly publicTemplateWhere = {
+    isPublic: true,
+    deletedAt: null,
+  } as const;
+
+  private mapTemplateToDTO(template: any) {
+    return {
       id: template.id,
       title: template.title,
       description: template.description,
       topic: template.topic,
       createdAt: template.createdAt.toISOString(),
-      creator: { ...template.creator },
-      responses: template._count.forms,
-      likes: template._count.likes,
-    }));
+      creator: template.creator && { ...template.creator },
+      responses: template._count?.forms ?? 0,
+    };
   }
 
-  async getTopTemplates() {
+  async getTemplates() {
     const templates = await this.prisma.template.findMany({
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        topic: true,
-        createdAt: true,
-        _count: {
-          select: {
-            likes: true,
-            forms: true,
-          },
-        },
-        creator: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
-      where: {
-        isPublic: true,
-        deletedAt: null,
-      },
+      select: this.defaultSelect,
+      where: this.publicTemplateWhere,
+    });
+
+    return templates.map(this.mapTemplateToDTO);
+  }
+
+  async getTopTemplates(limit = 5) {
+    const templates = await this.prisma.template.findMany({
+      select: this.defaultSelect,
+      where: this.publicTemplateWhere,
       orderBy: {
         forms: {
           _count: 'desc',
         },
       },
-      take: 5,
+      take: limit,
     });
 
-    return templates.map((template) => ({
-      id: template.id,
-      title: template.title,
-      description: template.description,
-      topic: template.topic,
-      createdAt: template.createdAt.toISOString(),
-      creator: { ...template.creator },
-      responses: template._count.forms,
-      likes: template._count.likes,
-    }));
+    return templates.map(this.mapTemplateToDTO);
   }
 
-  async getLatestTemplates() {
+  async getLatestTemplates(limit = 10) {
     const templates = await this.prisma.template.findMany({
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        topic: true,
-        createdAt: true,
-        _count: {
-          select: {
-            likes: true,
-            forms: true,
-          },
-        },
-        creator: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
-      where: {
-        isPublic: true,
-        deletedAt: null,
-      },
+      select: this.defaultSelect,
+      where: this.publicTemplateWhere,
       orderBy: {
         createdAt: 'desc',
       },
-      take: 10,
+      take: limit,
     });
 
-    return templates.map((template) => ({
-      id: template.id,
-      title: template.title,
-      description: template.description,
-      topic: template.topic,
-      createdAt: template.createdAt.toISOString(),
-      creator: { ...template.creator },
-      responses: template._count.forms,
-      likes: template._count.likes,
-    }));
+    return templates.map(this.mapTemplateToDTO);
   }
 
   async getTemplateById(templateId: number) {
@@ -343,7 +305,6 @@ class TemplateService {
         _count: {
           select: {
             forms: true,
-            likes: true,
           },
         },
         creator: {
@@ -374,7 +335,6 @@ class TemplateService {
       topic: t.topic,
       createdAt: t.createdAt.toISOString(),
       responses: t._count.forms,
-      likes: t._count.likes,
       tags: t.tags.map((t) => t.tag.tagName),
       creator: {
         id: t.creator.id,
@@ -429,7 +389,6 @@ class TemplateService {
         createdAt: true,
         _count: {
           select: {
-            likes: true,
             forms: true,
           },
         },
@@ -460,7 +419,6 @@ class TemplateService {
       createdAt: template.createdAt.toISOString(),
       creator: { ...template.creator },
       responses: template._count.forms,
-      likes: template._count.likes,
     }));
   }
 

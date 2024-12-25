@@ -22,7 +22,7 @@ router.get(
   formController.getForm
 );
 
-router.post(
+router.get(
   '/check/:templateId([0-9]+)',
   authMiddleware.authenticate,
   formController.hasUserSubmittedForm
