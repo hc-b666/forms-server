@@ -20,6 +20,15 @@ class ResponseService {
         }
         return this.instance;
     }
+    getResponses(formId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.response.findMany({
+                where: {
+                    formId,
+                },
+            });
+        });
+    }
     createResponse(formId, questionId, answer) {
         return __awaiter(this, void 0, void 0, function* () {
             if (typeof answer === 'string') {
@@ -50,6 +59,77 @@ class ResponseService {
                         },
                     });
                 }));
+            }
+        });
+    }
+    editResponse(formId, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            switch (data.questionType) {
+                case 'TEXT':
+                case 'PARAGRAPH': {
+                    yield this.prisma.response.update({
+                        where: {
+                            id: data.responseId,
+                        },
+                        data: {
+                            answer: data.answer,
+                        },
+                    });
+                    break;
+                }
+                case 'MCQ': {
+                    yield this.prisma.response.update({
+                        where: {
+                            id: data.responseId,
+                        },
+                        data: {
+                            optionId: data.optionId,
+                        },
+                    });
+                    break;
+                }
+                case 'CHECKBOX': {
+                    const existingResponses = yield this.prisma.response.findMany({
+                        where: {
+                            formId,
+                            questionId: data.questionId,
+                        },
+                    });
+                    const newOptionIds = new Set(data.optionIds);
+                    const responsesToDelete = existingResponses.filter((response) => !newOptionIds.has(response.optionId));
+                    if (responsesToDelete.length > 0) {
+                        yield this.prisma.response.deleteMany({
+                            where: {
+                                id: {
+                                    in: responsesToDelete.map((response) => response.id),
+                                },
+                            },
+                        });
+                    }
+                    for (const optionId of data.optionIds || []) {
+                        const exists = existingResponses.find((response) => response.optionId === optionId);
+                        if (!exists) {
+                            yield this.prisma.response.create({
+                                data: {
+                                    formId,
+                                    questionId: data.questionId,
+                                    optionId,
+                                },
+                            });
+                        }
+                        else {
+                            yield this.prisma.response.update({
+                                where: {
+                                    id: exists.id,
+                                },
+                                data: {
+                                    optionId,
+                                },
+                            });
+                        }
+                    }
+                    break;
+                }
             }
         });
     }

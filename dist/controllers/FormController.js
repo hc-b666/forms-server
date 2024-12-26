@@ -16,6 +16,7 @@ const http_errors_1 = __importDefault(require("http-errors"));
 const templateService_1 = __importDefault(require("../services/templateService"));
 const formService_1 = __importDefault(require("../services/formService"));
 const userService_1 = __importDefault(require("../services/userService"));
+const responseService_1 = __importDefault(require("../services/responseService"));
 class FormController {
     constructor() {
         this.getForms = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
@@ -48,12 +49,16 @@ class FormController {
         });
         this.getForm = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
+                const { templateId } = req.params;
+                if (!templateId) {
+                    throw (0, http_errors_1.default)(400, 'Template Id is required');
+                }
                 const { formId } = req.params;
                 if (!formId) {
                     throw (0, http_errors_1.default)(400, 'Ford Id is required');
                 }
-                const responses = yield this.formService.getForm(parseInt(formId));
-                res.status(200).json(responses);
+                const form = yield this.formService.getForm(parseInt(formId), parseInt(templateId));
+                res.status(200).json(form);
             }
             catch (err) {
                 next(err);
@@ -103,6 +108,30 @@ class FormController {
                 next(err);
             }
         });
+        this.editResponse = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { formId } = req.params;
+                if (!formId) {
+                    throw (0, http_errors_1.default)(400, 'Form Id is required');
+                }
+                const { questionId, answer, optionId, responseId, questionType, optionIds } = req.body;
+                if (!questionId || !responseId || !questionType) {
+                    throw (0, http_errors_1.default)(400, 'QuestionId, Answer, ResponseId and QuestionType are required');
+                }
+                yield this.responseService.editResponse(parseInt(formId), {
+                    questionId,
+                    answer,
+                    optionId,
+                    responseId,
+                    questionType,
+                    optionIds,
+                });
+                res.status(200).json({ message: 'Response updated successfully' });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.deleteForm = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { formId } = req.params;
@@ -119,6 +148,7 @@ class FormController {
         this.templateService = templateService_1.default.getInstance();
         this.formService = formService_1.default.getInstance();
         this.userService = userService_1.default.getInstance();
+        this.responseService = responseService_1.default.getInstance();
     }
 }
 exports.default = FormController;

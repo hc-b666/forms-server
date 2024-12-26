@@ -4,16 +4,19 @@ import createHttpError from 'http-errors';
 import TemplateService from '../services/templateService';
 import FormService from '../services/formService';
 import UserService from '../services/userService';
+import ResponseService from '../services/responseService';
 
 class FormController {
   private templateService: TemplateService;
   private formService: FormService;
   private userService: UserService;
+  private responseService: ResponseService;
 
   constructor() {
     this.templateService = TemplateService.getInstance();
     this.formService = FormService.getInstance();
     this.userService = UserService.getInstance();
+    this.responseService = ResponseService.getInstance();
   }
 
   getForms: RequestHandler = async (req, res, next) => {
@@ -49,14 +52,19 @@ class FormController {
 
   getForm: RequestHandler = async (req, res, next) => {
     try {
+      const { templateId } = req.params;
+      if (!templateId) {
+        throw createHttpError(400, 'Template Id is required');
+      }
+
       const { formId } = req.params;
       if (!formId) {
         throw createHttpError(400, 'Ford Id is required');
       }
 
-      const responses = await this.formService.getForm(parseInt(formId));
+      const form = await this.formService.getForm(parseInt(formId), parseInt(templateId));
 
-      res.status(200).json(responses);
+      res.status(200).json(form);
     } catch (err) {
       next(err);
     }
@@ -106,6 +114,33 @@ class FormController {
       const hasSubmitted = await this.userService.hasUserSubmittedForm(userId, parseInt(templateId));
 
       res.status(200).json({ hasSubmitted });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  editResponse: RequestHandler = async (req, res, next) => {
+    try {
+      const { formId } = req.params;
+      if (!formId) {
+        throw createHttpError(400, 'Form Id is required');
+      }
+
+      const { questionId, answer, optionId, responseId, questionType, optionIds } = req.body as EditResponseData;
+      if (!questionId || !responseId || !questionType) {
+        throw createHttpError(400, 'QuestionId, Answer, ResponseId and QuestionType are required');
+      }
+
+      await this.responseService.editResponse(parseInt(formId), {
+        questionId,
+        answer,
+        optionId,
+        responseId,
+        questionType,
+        optionIds,
+      });
+
+      res.status(200).json({ message: 'Response updated successfully' });
     } catch (err) {
       next(err);
     }

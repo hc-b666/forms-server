@@ -34,6 +34,13 @@ router.post(
   formController.createForm
 );
 
+router.put(
+  '/:formId([0-9]+)',
+  authMiddleware.authenticate,
+  authMiddleware.isFormAuthor,
+  formController.editResponse
+);
+
 router.delete(
   '/:formId([0-9]+)',
   authMiddleware.authenticate,

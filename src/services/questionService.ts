@@ -27,6 +27,29 @@ class QuestionService {
     return this.instance;
   }
 
+  async getQuestions(templateId: number) {
+    return await this.prisma.question.findMany({
+      where: {
+        templateId,
+      },
+      select: {
+        id: true,
+        questionText: true,
+        type: true,
+        order: true,
+        options: {
+          select: {
+            id: true,
+            option: true,
+          },
+        },
+      },
+      orderBy: {
+        order: 'asc',
+      },
+    });
+  }
+
   async createQuestion({ questionText, type, options, order }: Question, templateId: number) {
     const q = await this.prisma.question.create({
       data: {

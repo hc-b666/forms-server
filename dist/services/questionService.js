@@ -20,6 +20,30 @@ class QuestionService {
         }
         return this.instance;
     }
+    getQuestions(templateId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.question.findMany({
+                where: {
+                    templateId,
+                },
+                select: {
+                    id: true,
+                    questionText: true,
+                    type: true,
+                    order: true,
+                    options: {
+                        select: {
+                            id: true,
+                            option: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    order: 'asc',
+                },
+            });
+        });
+    }
     createQuestion(_a, templateId_1) {
         return __awaiter(this, arguments, void 0, function* ({ questionText, type, options, order }, templateId) {
             const q = yield this.prisma.question.create({

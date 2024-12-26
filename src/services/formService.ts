@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import ResponseService from './responseService';
+import QuestionService from './questionService';
 
 interface ICreateForm {
   authorId: number;
@@ -14,10 +15,12 @@ class FormService {
   private prisma: PrismaClient;
   private static instance: FormService;
   private responseService: ResponseService;
+  private questionService: QuestionService;
 
   private constructor() {
     this.prisma = new PrismaClient();
     this.responseService = ResponseService.getInstance();
+    this.questionService = QuestionService.getInstance();
   }
 
   public static getInstance(): FormService {
@@ -31,7 +34,7 @@ class FormService {
   async getForms(templateId: number) {
     return await this.prisma.form.findMany({
       select: {
-        id: true,        
+        id: true,
         filledAt: true,
         author: {
           select: {
@@ -40,7 +43,7 @@ class FormService {
           },
         },
       },
-      where: { 
+      where: {
         templateId,
         deletedAt: null,
       },
@@ -95,15 +98,12 @@ class FormService {
     }));
   }
 
-  async getForm(formId: number) {
+  async getForm(formId: number, templateId: number) {
     const form = await this.prisma.form.findUnique({
-      include: {
-        responses: {
-          include: {
-            question: true,
-            option: true,
-          },
-        },
+      select: {
+        id: true,
+        authorId: true,
+        filledAt: true,
       },
       where: {
         id: formId,
@@ -111,29 +111,18 @@ class FormService {
       },
     });
 
-    const responses = new Map<number, IResponse & { options: string[] }>();
+    if (!form) {
+      return null;
+    }
 
-    form?.responses.forEach((r) => {
-      if (!responses.has(r.questionId)) {
-        responses.set(r.questionId, {
-          questionId: r.questionId,
-          questionText: r.question.questionText,
-          type: r.question.type,
-          responseId: r.id,
-          answer: r.answer,
-          optionId: r.optionId,
-          option: r.option?.option || null,
-          options: r.option ? [r.option.option] : [],
-        });
-      } else {
-        const existing = responses.get(r.questionId)!;
-        if (r.option && !existing.options.includes(r.option.option)) {
-          existing.options.push(r.option.option);
-        }
-      }
-    });
+    const questions = await this.questionService.getQuestions(templateId);
+    const responses = await this.responseService.getResponses(formId);
 
-    return Array.from(responses.values());
+    return {
+      form,
+      questions,
+      responses,
+    };
   }
 
   async createForm({ authorId, templateId, responses }: ICreateForm) {

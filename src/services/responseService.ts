@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, QuestionType } from '@prisma/client';
 
 class ResponseService {
   private prisma: PrismaClient;
@@ -14,6 +14,14 @@ class ResponseService {
     }
 
     return this.instance;
+  }
+
+  async getResponses(formId: number) {
+    return await this.prisma.response.findMany({
+      where: {
+        formId,
+      },
+    });
   }
 
   async createResponse(
@@ -47,6 +55,86 @@ class ResponseService {
           },
         });
       });
+    }
+  }
+
+  async editResponse(formId: number, data: EditResponseData) {
+    switch (data.questionType) {
+      case 'TEXT':
+      case 'PARAGRAPH': {
+        await this.prisma.response.update({
+          where: {
+            id: data.responseId,
+          },
+          data: {
+            answer: data.answer,
+          },
+        });
+        break;
+      }
+
+      case 'MCQ': {
+        await this.prisma.response.update({
+          where: {
+            id: data.responseId,
+          },
+          data: {
+            optionId: data.optionId,
+          },
+        });
+        break;
+      }
+
+      case 'CHECKBOX': {
+        const existingResponses = await this.prisma.response.findMany({
+          where: {
+            formId,
+            questionId: data.questionId,
+          },
+        });
+
+        const newOptionIds = new Set(data.optionIds);
+
+        const responsesToDelete = existingResponses.filter(
+          (response) => !newOptionIds.has(response.optionId as number)
+        );
+
+        if (responsesToDelete.length > 0) {
+          await this.prisma.response.deleteMany({
+            where: {
+              id: {
+                in: responsesToDelete.map((response) => response.id),
+              },
+            },
+          });
+        }
+
+        for (const optionId of data.optionIds || []) {
+          const exists = existingResponses.find(
+            (response) => response.optionId === optionId
+          );
+
+          if (!exists) {
+            await this.prisma.response.create({
+              data: {
+                formId,
+                questionId: data.questionId,
+                optionId,
+              },
+            });
+          } else {
+            await this.prisma.response.update({
+              where: {
+                id: exists.id,
+              },
+              data: {
+                optionId,
+              },
+            });
+          }
+        }
+        break;
+      }
     }
   }
 }

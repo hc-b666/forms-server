@@ -14,10 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const responseService_1 = __importDefault(require("./responseService"));
+const questionService_1 = __importDefault(require("./questionService"));
 class FormService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
         this.responseService = responseService_1.default.getInstance();
+        this.questionService = questionService_1.default.getInstance();
     }
     static getInstance() {
         if (!this.instance) {
@@ -87,45 +89,29 @@ class FormService {
             return forms.map((f) => (Object.assign(Object.assign({}, f), { template: Object.assign(Object.assign({}, f.template), { tags: f.template.tags.map((t) => t.tag.tagName) }) })));
         });
     }
-    getForm(formId) {
+    getForm(formId, templateId) {
         return __awaiter(this, void 0, void 0, function* () {
             const form = yield this.prisma.form.findUnique({
-                include: {
-                    responses: {
-                        include: {
-                            question: true,
-                            option: true,
-                        },
-                    },
+                select: {
+                    id: true,
+                    authorId: true,
+                    filledAt: true,
                 },
                 where: {
                     id: formId,
                     deletedAt: null,
                 },
             });
-            const responses = new Map();
-            form === null || form === void 0 ? void 0 : form.responses.forEach((r) => {
-                var _a;
-                if (!responses.has(r.questionId)) {
-                    responses.set(r.questionId, {
-                        questionId: r.questionId,
-                        questionText: r.question.questionText,
-                        type: r.question.type,
-                        responseId: r.id,
-                        answer: r.answer,
-                        optionId: r.optionId,
-                        option: ((_a = r.option) === null || _a === void 0 ? void 0 : _a.option) || null,
-                        options: r.option ? [r.option.option] : [],
-                    });
-                }
-                else {
-                    const existing = responses.get(r.questionId);
-                    if (r.option && !existing.options.includes(r.option.option)) {
-                        existing.options.push(r.option.option);
-                    }
-                }
-            });
-            return Array.from(responses.values());
+            if (!form) {
+                return null;
+            }
+            const questions = yield this.questionService.getQuestions(templateId);
+            const responses = yield this.responseService.getResponses(formId);
+            return {
+                form,
+                questions,
+                responses,
+            };
         });
     }
     createForm(_a) {

@@ -111,6 +111,15 @@ declare global {
     optionId: number | null;
     option: string | null;
   }
+
+  interface EditResponseData {
+    questionId: number;
+    responseId: number;
+    questionType: QuestionType;
+    answer: string | null;
+    optionId?: number | null;
+    optionIds?: number[];
+  }
 }
 
 export {};
