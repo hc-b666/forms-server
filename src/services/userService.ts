@@ -69,6 +69,7 @@ class UserService {
       where: {
         authorId,
         templateId,
+        deletedAt: null,
       },
     });
 
@@ -81,6 +82,17 @@ class UserService {
     });
 
     return template ? true : false;
+  }
+
+  async checkIfUserIsAuthorOfForm(userId: number, templateId: number) {
+    const form = await this.prisma.form.findFirst({
+      where: {
+        templateId,
+        authorId: userId,
+      }
+    });
+
+    return form ? true : false;
   }
 
   async searchUserByEmail(query: string, userId: number) {

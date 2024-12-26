@@ -34,4 +34,11 @@ router.post(
   formController.createForm
 );
 
+router.delete(
+  '/:formId([0-9]+)',
+  authMiddleware.authenticate,
+  authMiddleware.isFormAuthor,
+  formController.deleteForm
+);
+
 export default router;

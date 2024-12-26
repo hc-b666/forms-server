@@ -103,6 +103,19 @@ class FormController {
                 next(err);
             }
         });
+        this.deleteForm = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { formId } = req.params;
+                if (!formId) {
+                    throw (0, http_errors_1.default)(400, 'Form Id is required');
+                }
+                yield this.formService.deleteForm(parseInt(formId));
+                res.status(200).json({ message: 'Form deleted successfully' });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.templateService = templateService_1.default.getInstance();
         this.formService = formService_1.default.getInstance();
         this.userService = userService_1.default.getInstance();

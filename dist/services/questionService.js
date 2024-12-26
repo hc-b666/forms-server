@@ -45,5 +45,36 @@ class QuestionService {
             });
         });
     }
+    editQuestion(_a) {
+        return __awaiter(this, arguments, void 0, function* ({ id, questionText, type, options, order }) {
+            yield this.prisma.question.update({
+                where: {
+                    id,
+                },
+                data: {
+                    questionText,
+                    type,
+                    order,
+                },
+            });
+            if ((type === 'MCQ' || type === 'CHECKBOX') && options.length > 0) {
+                options.forEach((option) => __awaiter(this, void 0, void 0, function* () {
+                    if (typeof option.id === 'string') {
+                        yield this.createQuestionOption(option.option, id);
+                    }
+                    else {
+                        yield this.prisma.questionOption.update({
+                            where: {
+                                id: option.id,
+                            },
+                            data: {
+                                option: option.option,
+                            },
+                        });
+                    }
+                }));
+            }
+        });
+    }
 }
 exports.default = QuestionService;

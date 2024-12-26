@@ -38,7 +38,10 @@ class FormService {
                         },
                     },
                 },
-                where: { templateId },
+                where: {
+                    templateId,
+                    deletedAt: null,
+                },
                 orderBy: {
                     filledAt: 'desc',
                 },
@@ -75,6 +78,7 @@ class FormService {
                     template: {
                         deletedAt: null,
                     },
+                    deletedAt: null,
                 },
                 orderBy: {
                     filledAt: 'desc',
@@ -96,6 +100,7 @@ class FormService {
                 },
                 where: {
                     id: formId,
+                    deletedAt: null,
                 },
             });
             const responses = new Map();
@@ -134,6 +139,18 @@ class FormService {
             responses.forEach((response) => __awaiter(this, void 0, void 0, function* () {
                 return yield this.responseService.createResponse(form.id, response.questionId, response.answer);
             }));
+        });
+    }
+    deleteForm(formId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.prisma.form.update({
+                where: {
+                    id: formId,
+                },
+                data: {
+                    deletedAt: new Date(),
+                },
+            });
         });
     }
 }

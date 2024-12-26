@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import createHttpError from 'http-errors';
 
 import TemplateService from '../services/templateService';
@@ -16,7 +16,7 @@ class FormController {
     this.userService = UserService.getInstance();
   }
 
-  getForms = async (req: Request, res: Response, next: NextFunction) => {
+  getForms: RequestHandler = async (req, res, next) => {
     try {
       const templateId = req.templateId;
       if (!templateId) {
@@ -32,7 +32,7 @@ class FormController {
     }
   };
 
-  getFormsByUser = async (req: Request, res: Response, next: NextFunction) => {
+  getFormsByUser: RequestHandler = async (req, res, next) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -47,7 +47,7 @@ class FormController {
     }
   };
 
-  getForm = async (req: Request, res: Response, next: NextFunction) => {
+  getForm: RequestHandler = async (req, res, next) => {
     try {
       const { formId } = req.params;
       if (!formId) {
@@ -62,7 +62,7 @@ class FormController {
     }
   };
 
-  createForm = async (req: Request, res: Response, next: NextFunction) => {
+  createForm: RequestHandler = async (req, res, next) => {
     try {
       const { templateId } = req.params;
       if (!templateId) {
@@ -91,7 +91,7 @@ class FormController {
     }
   };
 
-  hasUserSubmittedForm = async (req: Request, res: Response, next: NextFunction) => {
+  hasUserSubmittedForm: RequestHandler = async (req, res, next) => {
     try {
       const { templateId } = req.params;
       if (!templateId) {
@@ -106,6 +106,21 @@ class FormController {
       const hasSubmitted = await this.userService.hasUserSubmittedForm(userId, parseInt(templateId));
 
       res.status(200).json({ hasSubmitted });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  deleteForm: RequestHandler = async (req, res, next) => {
+    try {
+      const { formId } = req.params;
+      if (!formId) {
+        throw createHttpError(400, 'Form Id is required');
+      }
+
+      await this.formService.deleteForm(parseInt(formId));
+
+      res.status(200).json({ message: 'Form deleted successfully' });
     } catch (err) {
       next(err);
     }

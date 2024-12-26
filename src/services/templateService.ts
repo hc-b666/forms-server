@@ -28,9 +28,13 @@ interface TemplateSelect {
   createdAt: true;
   _count: {
     select: {
-      forms: true;
-    };
-  };
+      forms: {
+        where: {
+          deletedAt: null,
+        },
+      },
+    },
+  },
   creator: {
     select: {
       id: true;
@@ -67,7 +71,11 @@ class TemplateService {
     createdAt: true,
     _count: {
       select: {
-        forms: true,
+        forms: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     },
     creator: {
@@ -144,7 +152,12 @@ class TemplateService {
         },
         questions: {
           include: {
-            options: true,
+            options: {
+              select: {
+                id: true,
+                option: true,
+              },
+            },
           },
           orderBy: {
             order: 'asc',
@@ -231,7 +244,11 @@ class TemplateService {
         },
         _count: {
           select: {
-            forms: true,
+            forms: {
+              where: {
+                deletedAt: null,
+              },
+            }
           },
         },
       },

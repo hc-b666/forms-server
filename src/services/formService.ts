@@ -40,7 +40,10 @@ class FormService {
           },
         },
       },
-      where: { templateId },
+      where: { 
+        templateId,
+        deletedAt: null,
+      },
       orderBy: {
         filledAt: 'desc',
       },
@@ -76,6 +79,7 @@ class FormService {
         template: {
           deletedAt: null,
         },
+        deletedAt: null,
       },
       orderBy: {
         filledAt: 'desc',
@@ -103,6 +107,7 @@ class FormService {
       },
       where: {
         id: formId,
+        deletedAt: null,
       },
     });
 
@@ -147,6 +152,17 @@ class FormService {
           response.answer
         )
     );
+  }
+
+  async deleteForm(formId: number) {
+    await this.prisma.form.update({
+      where: {
+        id: formId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }
 

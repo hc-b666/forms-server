@@ -51,11 +51,33 @@ class AuthMiddleware {
                 if (!templateId || isNaN(parseInt(templateId))) {
                     throw (0, http_errors_1.default)(400, 'Template Id is required');
                 }
-                const isAuthor = yield this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
-                if (!isAuthor) {
-                    throw (0, http_errors_1.default)(403, 'Action is not allowed');
+                const isAuthorOfTemplate = yield this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
+                const isAuthorOfForm = yield this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(templateId));
+                if (!isAuthorOfTemplate && !isAuthorOfForm) {
+                    throw (0, http_errors_1.default)(403, 'Forbidden - You are not allowed');
                 }
                 req.templateId = parseInt(templateId);
+                next();
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.isFormAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            try {
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                if (!userId) {
+                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                }
+                const { formId } = req.params;
+                if (!formId || isNaN(parseInt(formId))) {
+                    throw (0, http_errors_1.default)(400, 'Form Id is required');
+                }
+                const isAuthorOfForm = yield this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(formId));
+                if (!isAuthorOfForm) {
+                    throw (0, http_errors_1.default)(403, 'Forbidden - You are not allowed');
+                }
                 next();
             }
             catch (err) {

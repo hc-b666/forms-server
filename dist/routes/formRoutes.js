@@ -14,4 +14,5 @@ router.get('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.i
 router.get('/:templateId([0-9]+)/responses/:formId([0-9]+)', authMiddleware.authenticate, authMiddleware.isAuthor, formController.getForm);
 router.get('/check/:templateId([0-9]+)', authMiddleware.authenticate, formController.hasUserSubmittedForm);
 router.post('/submit/:templateId([0-9]+)', authMiddleware.authenticate, formController.createForm);
+router.delete('/:formId([0-9]+)', authMiddleware.authenticate, authMiddleware.isFormAuthor, formController.deleteForm);
 exports.default = router;
