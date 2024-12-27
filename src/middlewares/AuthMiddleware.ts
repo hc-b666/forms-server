@@ -58,9 +58,14 @@ class AuthMiddleware {
       if (!templateId || isNaN(parseInt(templateId))) {
         throw createHttpError(400, 'Template Id is required');
       }
+
+      const { formId } = req.params;
+      if (!formId || isNaN(parseInt(formId))) {
+        throw createHttpError(400, 'Form Id is required');
+      }
   
       const isAuthorOfTemplate = await this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
-      const isAuthorOfForm = await this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(templateId));
+      const isAuthorOfForm = await this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(formId));
       if (!isAuthorOfTemplate && !isAuthorOfForm) {
         throw createHttpError(403, 'Forbidden - You are not allowed');
       }
