@@ -172,7 +172,11 @@ class TemplateService {
                     },
                     _count: {
                         select: {
-                            forms: true,
+                            forms: {
+                                where: {
+                                    deletedAt: null,
+                                }
+                            },
                         },
                     },
                 },
@@ -243,7 +247,11 @@ class TemplateService {
                             },
                             _count: {
                                 select: {
-                                    forms: true,
+                                    forms: {
+                                        where: {
+                                            deletedAt: null,
+                                        },
+                                    },
                                 },
                             },
                         },

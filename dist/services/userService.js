@@ -27,8 +27,16 @@ class UserService {
     }
     checkUserExists(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.prisma.user.findUnique({ where: { email } });
-            return user ? true : false;
+            const user = yield this.prisma.user.findUnique({
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    isBlocked: true,
+                },
+                where: { email }
+            });
+            return user;
         });
     }
     getUserByEmail(email) {
@@ -91,11 +99,11 @@ class UserService {
             return template ? true : false;
         });
     }
-    checkIfUserIsAuthorOfForm(userId, templateId) {
+    checkIfUserIsAuthorOfForm(userId, formId) {
         return __awaiter(this, void 0, void 0, function* () {
             const form = yield this.prisma.form.findFirst({
                 where: {
-                    templateId,
+                    id: formId,
                     authorId: userId,
                 }
             });

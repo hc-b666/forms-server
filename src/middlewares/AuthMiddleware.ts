@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { UserRole } from '@prisma/client';
 import createHttpError from 'http-errors';
 
 import TokenService from '../utils/jwt';
@@ -21,15 +22,23 @@ class AuthMiddleware {
       const token = TokenService.extractTokenFromHeader(authHeader);
       const decoded = TokenService.verifyToken(token);
 
-      const exists = await this.userService.checkUserExists(decoded.email);
-      if (!exists) {
+      const user = await this.userService.checkUserExists(decoded.email);
+      if (!user) {
         throw createHttpError(401, 'Unauthorized');
       }
 
+      if (user.isBlocked) {
+        throw createHttpError(401, 'You are blocked. Ask from our customer services to unblock you.');
+      }
+
+      if (decoded.role === "ADMIN" && user.role === "USER") {
+        throw createHttpError(403, 'Forbidden');
+      }
+
       req.user = { 
-        id: decoded.userId, 
-        email: decoded.email, 
-        role: decoded.role 
+        id: user.id, 
+        email: user.email, 
+        role: user.role 
       };
       
       next();
@@ -58,6 +67,30 @@ class AuthMiddleware {
   
       req.templateId = parseInt(templateId);
   
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  isTemplateAuthor: RequestHandler = async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        throw createHttpError(401, 'Unauthorized');
+      }
+  
+      const { templateId } = req.params;
+      if (!templateId || isNaN(parseInt(templateId))) {
+        throw createHttpError(400, 'Template Id is required');
+      }
+  
+      const isAuthorOfTemplate = await this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
+      if (!isAuthorOfTemplate) {
+        throw createHttpError(403, 'Forbidden - You are not allowed');
+      }
+
+      req.templateId = parseInt(templateId);
       next();
     } catch (err) {
       next(err);
@@ -93,7 +126,7 @@ class AuthMiddleware {
         throw createHttpError(401, 'Unauthorized');
       }
 
-      if (req.user.role !== 'ADMIN') {
+      if (req.user.role !== UserRole.ADMIN) {
         throw createHttpError(403, 'Forbidden - You are not allowed');
       }
 

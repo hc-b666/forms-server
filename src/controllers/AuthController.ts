@@ -48,6 +48,10 @@ class AuthController {
         throw createHttpError(400, `Invalid credentials`);
       }
 
+      if (user.isBlocked) {
+        throw createHttpError(401, 'You are blocked. Ask from our customer services to unblock you.');
+      }
+
       const accessToken = TokenService.createAccessToken(user.id, user.email, user.role);
       const refreshToken = TokenService.createRefreshToken(user.id, user.email, user.role);
 
@@ -80,9 +84,13 @@ class AuthController {
 
       const decoded = TokenService.verifyToken(refreshToken);
 
-      const exists = await this.userService.checkUserExists(decoded.email);
-      if (!exists) {
+      const user = await this.userService.checkUserExists(decoded.email);
+      if (!user) {
         throw createHttpError(401, 'Unauthorized');
+      }
+
+      if (user.isBlocked) {
+        throw createHttpError(401, 'You are blocked. Ask from our customer services to unblock you.');
       }
 
       const newAccessToken = TokenService.createAccessToken(decoded.userId, decoded.email, decoded.role);

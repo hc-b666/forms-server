@@ -11,7 +11,7 @@ router.get('/user', authMiddleware.authenticate, formController.getFormsByUser);
 router.get(
   '/:templateId([0-9]+)',
   authMiddleware.authenticate,
-  authMiddleware.isAuthor,
+  authMiddleware.isTemplateAuthor,
   formController.getForms
 );
 
