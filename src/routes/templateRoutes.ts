@@ -19,8 +19,8 @@ router.get('/profile/private/templates', authMiddleware.authenticate, templateCo
 
 router.post('/create', authMiddleware.authenticate, templateController.createTemplate);
 
-router.put('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isAuthor, templateController.editTemplate);
+router.put('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, templateController.editTemplate);
 
-router.delete('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isAuthor, templateController.deleteTemplate);
+router.delete('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, templateController.deleteTemplate);
 
 export default router;
