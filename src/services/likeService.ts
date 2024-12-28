@@ -23,6 +23,9 @@ class LikeService {
           userId,
           templateId,
         },
+        user: {
+          deletedAt: null,
+        },
       },
     });
 
@@ -39,6 +42,9 @@ class LikeService {
     return await this.prisma.like.count({
       where: {
         templateId,
+        user: {
+          deletedAt: null,
+        },
       },
     });
   }

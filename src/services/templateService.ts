@@ -30,11 +30,11 @@ interface TemplateSelect {
     select: {
       forms: {
         where: {
-          deletedAt: null,
-        },
-      },
-    },
-  },
+          deletedAt: null;
+        };
+      };
+    };
+  };
   creator: {
     select: {
       id: true;
@@ -84,7 +84,7 @@ class TemplateService {
         email: true,
       },
     },
-  }
+  };
 
   private readonly publicTemplateWhere = {
     isPublic: true,
@@ -106,7 +106,13 @@ class TemplateService {
   async getTemplates() {
     const templates = await this.prisma.template.findMany({
       select: this.defaultSelect,
-      where: this.publicTemplateWhere,
+      where: {
+        isPublic: true,
+        deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
+      },
     });
 
     return templates.map(this.mapTemplateToDTO);
@@ -114,8 +120,38 @@ class TemplateService {
 
   async getTopTemplates(limit = 5) {
     const templates = await this.prisma.template.findMany({
-      select: this.defaultSelect,
-      where: this.publicTemplateWhere,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
+        _count: {
+          select: {
+            forms: {
+              where: {
+                deletedAt: null,
+                author: {
+                  deletedAt: null,
+                },
+              },
+            },
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+      where: {
+        isPublic: true,
+        deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
+      },
       orderBy: {
         forms: {
           _count: 'desc',
@@ -129,8 +165,38 @@ class TemplateService {
 
   async getLatestTemplates(limit = 10) {
     const templates = await this.prisma.template.findMany({
-      select: this.defaultSelect,
-      where: this.publicTemplateWhere,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
+        _count: {
+          select: {
+            forms: {
+              where: {
+                deletedAt: null,
+                author: {
+                  deletedAt: null,
+                },
+              },
+            },
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+      where: {
+        isPublic: true,
+        deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -142,7 +208,12 @@ class TemplateService {
 
   async getTemplateById(templateId: number) {
     const template = await this.prisma.template.findUnique({
-      where: { id: templateId },
+      where: {
+        id: templateId,
+        creator: {
+          deletedAt: null,
+        },
+      },
       include: {
         creator: {
           select: {
@@ -200,6 +271,9 @@ class TemplateService {
         createdBy: userId,
         isPublic: true,
         deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
       },
       include: {
         tags: {
@@ -212,7 +286,7 @@ class TemplateService {
             forms: {
               where: {
                 deletedAt: null,
-              }
+              },
             },
           },
         },
@@ -239,6 +313,9 @@ class TemplateService {
         createdBy: userId,
         isPublic: false,
         deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
       },
       include: {
         tags: {
@@ -252,7 +329,7 @@ class TemplateService {
               where: {
                 deletedAt: null,
               },
-            }
+            },
           },
         },
       },
@@ -294,12 +371,15 @@ class TemplateService {
           },
         },
       },
-      where: { 
-        userId, 
-        template: { 
-          isPublic: false, 
-          deletedAt: null 
-        } 
+      where: {
+        userId,
+        template: {
+          isPublic: false,
+          deletedAt: null,
+        },
+        user: {
+          deletedAt: null,
+        },
       },
       orderBy: {
         template: {
@@ -344,6 +424,9 @@ class TemplateService {
           some: {
             tagId,
           },
+        },
+        creator: {
+          deletedAt: null,
         },
         isPublic: true,
         deletedAt: null,
@@ -427,6 +510,9 @@ class TemplateService {
       where: {
         isPublic: true,
         deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
         OR: [
           { title: { search: query } },
           { description: { search: query } },

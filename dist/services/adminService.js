@@ -94,9 +94,12 @@ class AdminService {
             if (!(yield this.userService.getUserById(userId))) {
                 return false;
             }
-            yield this.prisma.user.delete({
+            yield this.prisma.user.update({
                 where: {
                     id: userId,
+                },
+                data: {
+                    deletedAt: new Date(),
                 },
             });
             return true;

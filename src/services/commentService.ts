@@ -41,6 +41,9 @@ class CommentService {
       },
       where: {
         templateId,
+        author: {
+          deletedAt: null,
+        },
       },
       orderBy: {
         createdAt: 'desc',

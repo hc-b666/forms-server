@@ -28,7 +28,7 @@ class UserService {
         role: true,
         isBlocked: true,
       },
-      where: { email } 
+      where: { email },
     });
 
     return user;
@@ -48,6 +48,9 @@ class UserService {
         email: true,
         isBlocked: true,
         role: true,
+      },
+      where: {
+        deletedAt: null,
       },
       orderBy: {
         id: 'asc',

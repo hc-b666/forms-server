@@ -43,6 +43,9 @@ class FormService {
                 where: {
                     templateId,
                     deletedAt: null,
+                    author: {
+                        deletedAt: null,
+                    },
                 },
                 orderBy: {
                     filledAt: 'desc',
@@ -80,6 +83,9 @@ class FormService {
                     template: {
                         deletedAt: null,
                     },
+                    author: {
+                        deletedAt: null,
+                    },
                     deletedAt: null,
                 },
                 orderBy: {
@@ -100,6 +106,9 @@ class FormService {
                 where: {
                     id: formId,
                     deletedAt: null,
+                    author: {
+                        deletedAt: null,
+                    },
                 },
             });
             if (!form) {

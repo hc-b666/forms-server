@@ -92,9 +92,12 @@ export default class AdminService {
       return false;
     }
 
-    await this.prisma.user.delete({
+    await this.prisma.user.update({
       where: {
         id: userId,
+      },
+      data: {
+        deletedAt: new Date(),
       },
     });
 

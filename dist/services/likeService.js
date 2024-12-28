@@ -28,6 +28,9 @@ class LikeService {
                         userId,
                         templateId,
                     },
+                    user: {
+                        deletedAt: null,
+                    },
                 },
             });
             const likeCount = yield this.prisma.like.count({
@@ -43,6 +46,9 @@ class LikeService {
             return yield this.prisma.like.count({
                 where: {
                     templateId,
+                    user: {
+                        deletedAt: null,
+                    },
                 },
             });
         });
