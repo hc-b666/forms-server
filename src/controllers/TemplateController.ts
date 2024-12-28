@@ -97,15 +97,15 @@ class TemplateController {
       const { title, description, topic, type, questions, tags, users } = req.body;
       validateInput(req.body, ['title', 'description', 'topic', 'type', 'questions', 'tags']);
 
-      const createdBy = req.user?.id;
-      if (!createdBy) {
-        throw createHttpError(401, 'Unauthorized');
+      const { userId } = req.params;
+      if (!userId) {
+        throw createHttpError(400, 'User id is required');
       }
 
       await this.templateService.createTemplate({
         title,
         description,
-        createdBy,
+        createdBy: parseInt(userId),
         topic,
         type,
         questions,

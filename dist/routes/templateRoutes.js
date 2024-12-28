@@ -18,7 +18,7 @@ router.get('/search/:tagId', templateController.searchTemplatesByTagId);
 router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, templateController.getProfile);
 router.get('/profile/private', authMiddleware.authenticate, templateController.getPrivateTemplatesByUserId);
 router.get('/profile/private/templates', authMiddleware.authenticate, templateController.getPrivateTemplatesForAccessibleUser);
-router.post('/create', authMiddleware.authenticate, templateController.createTemplate);
+router.post('/create/:userId', authMiddleware.authenticate, templateController.createTemplate);
 router.put('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, templateController.editTemplate);
 router.delete('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, templateController.deleteTemplate);
 exports.default = router;
