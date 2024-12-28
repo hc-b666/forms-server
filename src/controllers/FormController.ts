@@ -37,12 +37,12 @@ class FormController {
 
   getFormsByUser: RequestHandler = async (req, res, next) => {
     try {
-      const userId = req.user?.id;
+      const { userId } = req.params;
       if (!userId) {
-        throw createHttpError(401, 'Unauthorized');
+        throw createHttpError(400, 'User Id is required');
       }
 
-      const forms = await this.formService.getFormsByUser(userId);
+      const forms = await this.formService.getFormsByUser(parseInt(userId));
 
       res.status(200).json(forms);
     } catch (err) {

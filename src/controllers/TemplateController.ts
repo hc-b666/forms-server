@@ -66,12 +66,12 @@ class TemplateController {
 
   getPrivateTemplatesByUserId: RequestHandler = async (req, res, next) => {
     try {
-      const user = req.user;
-      if (!user) {
-        throw createHttpError(401, 'Unauthorized');
+      const { userId } = req.params;
+      if (!userId) {
+        throw createHttpError(400, 'User id is required');
       }
 
-      const templates = await this.templateService.getPrivateTemplatesByUserId(user.id);
+      const templates = await this.templateService.getPrivateTemplatesByUserId(parseInt(userId));
       res.status(200).json(templates);
     } catch (err) {
       next(err);
@@ -80,12 +80,12 @@ class TemplateController {
 
   getPrivateTemplatesForAccessibleUser: RequestHandler = async (req, res, next) => {
     try {
-      const user = req.user;
-      if (!user) {
-        throw createHttpError(401, 'Unauthorized');
+      const { userId } = req.params;
+      if (!userId) {
+        throw createHttpError(400, 'User id is required');
       }
 
-      const templates = await this.templateService.getPrivateTemplatesForAccessibleUser(user.id);
+      const templates = await this.templateService.getPrivateTemplatesForAccessibleUser(parseInt(userId));
       res.status(200).json(templates);
     } catch (err) {
       next(err);

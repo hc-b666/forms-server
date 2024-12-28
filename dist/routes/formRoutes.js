@@ -9,7 +9,7 @@ const FormController_1 = __importDefault(require("../controllers/FormController"
 const router = express_1.default.Router();
 const authMiddleware = new AuthMiddleware_1.default();
 const formController = new FormController_1.default();
-router.get('/user', authMiddleware.authenticate, formController.getFormsByUser);
+router.get('/user/:userId([0-9]+)', authMiddleware.authenticate, formController.getFormsByUser);
 router.get('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, formController.getForms);
 router.get('/:templateId([0-9]+)/responses/:formId([0-9]+)', authMiddleware.authenticate, authMiddleware.isAuthor, formController.getForm);
 router.get('/check/:templateId([0-9]+)', authMiddleware.authenticate, formController.hasUserSubmittedForm);

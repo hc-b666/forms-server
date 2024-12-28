@@ -34,13 +34,12 @@ class FormController {
             }
         });
         this.getFormsByUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const { userId } = req.params;
                 if (!userId) {
-                    throw (0, http_errors_1.default)(401, 'Unauthorized');
+                    throw (0, http_errors_1.default)(400, 'User Id is required');
                 }
-                const forms = yield this.formService.getFormsByUser(userId);
+                const forms = yield this.formService.getFormsByUser(parseInt(userId));
                 res.status(200).json(forms);
             }
             catch (err) {
