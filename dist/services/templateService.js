@@ -472,10 +472,10 @@ class TemplateService {
                         deletedAt: null,
                     },
                     OR: [
-                        { title: { search: query } },
-                        { description: { search: query } },
-                        { questions: { some: { questionText: { search: query } } } },
-                        { tags: { some: { tag: { tagName: { search: query } } } } },
+                        { title: { contains: query } },
+                        { description: { contains: query } },
+                        { questions: { some: { questionText: { contains: query } } } },
+                        { tags: { some: { tag: { tagName: { contains: query } } } } },
                     ],
                 },
             });
