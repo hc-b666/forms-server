@@ -17,32 +17,6 @@ const tagService_1 = __importDefault(require("./tagService"));
 const questionService_1 = __importDefault(require("./questionService"));
 class TemplateService {
     constructor() {
-        this.defaultSelect = {
-            id: true,
-            title: true,
-            description: true,
-            topic: true,
-            createdAt: true,
-            _count: {
-                select: {
-                    forms: {
-                        where: {
-                            deletedAt: null,
-                        },
-                    },
-                },
-            },
-            creator: {
-                select: {
-                    id: true,
-                    email: true,
-                },
-            },
-        };
-        this.publicTemplateWhere = {
-            isPublic: true,
-            deletedAt: null,
-        };
         this.prisma = new client_1.PrismaClient();
         this.tagService = tagService_1.default.getInstance();
         this.questionService = questionService_1.default.getInstance();
@@ -68,12 +42,41 @@ class TemplateService {
     getTemplates() {
         return __awaiter(this, void 0, void 0, function* () {
             const templates = yield this.prisma.template.findMany({
-                select: this.defaultSelect,
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    topic: true,
+                    createdAt: true,
+                    _count: {
+                        select: {
+                            forms: {
+                                where: {
+                                    deletedAt: null,
+                                    author: {
+                                        deletedAt: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    creator: {
+                        select: {
+                            id: true,
+                            email: true,
+                        },
+                    },
+                },
                 where: {
                     isPublic: true,
                     deletedAt: null,
                     creator: {
                         deletedAt: null,
+                    },
+                },
+                orderBy: {
+                    forms: {
+                        _count: 'desc',
                     },
                 },
             });

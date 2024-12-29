@@ -11,7 +11,7 @@ router.get('/top', templateController.getTopTemplates);
 router.get('/latest', templateController.getLatestTemplates);
 router.get('/:templateId([0-9]+)', templateController.getTemplateById);
 router.get('/search', templateController.searchTemplates);
-router.get('/search/:tagId([0-9]+)', templateController.searchTemplatesByTagId);
+router.get('/search/:tagId', templateController.searchTemplatesByTagId);
 
 router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, templateController.getProfile);
 router.get('/profile/private/:userId([0-9]+)', authMiddleware.authenticate, templateController.getPrivateTemplatesByUserId);

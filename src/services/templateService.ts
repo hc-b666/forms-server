@@ -20,29 +20,6 @@ interface EditTemplateDetails {
   tags: string[];
 }
 
-interface TemplateSelect {
-  id: true;
-  title: true;
-  description: true;
-  topic: true;
-  createdAt: true;
-  _count: {
-    select: {
-      forms: {
-        where: {
-          deletedAt: null;
-        };
-      };
-    };
-  };
-  creator: {
-    select: {
-      id: true;
-      email: true;
-    };
-  };
-}
-
 class TemplateService {
   private prisma: PrismaClient;
   private tagService: TagService;
@@ -63,34 +40,6 @@ class TemplateService {
     return this.instance;
   }
 
-  private readonly defaultSelect: TemplateSelect = {
-    id: true,
-    title: true,
-    description: true,
-    topic: true,
-    createdAt: true,
-    _count: {
-      select: {
-        forms: {
-          where: {
-            deletedAt: null,
-          },
-        },
-      },
-    },
-    creator: {
-      select: {
-        id: true,
-        email: true,
-      },
-    },
-  };
-
-  private readonly publicTemplateWhere = {
-    isPublic: true,
-    deletedAt: null,
-  } as const;
-
   private mapTemplateToDTO(template: any) {
     return {
       id: template.id,
@@ -105,12 +54,41 @@ class TemplateService {
 
   async getTemplates() {
     const templates = await this.prisma.template.findMany({
-      select: this.defaultSelect,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        topic: true,
+        createdAt: true,
+        _count: {
+          select: {
+            forms: {
+              where: {
+                deletedAt: null,
+                author: {
+                  deletedAt: null,
+                },
+              },
+            },
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
       where: {
         isPublic: true,
         deletedAt: null,
         creator: {
           deletedAt: null,
+        },
+      },
+      orderBy: {
+        forms: {
+          _count: 'desc',
         },
       },
     });
