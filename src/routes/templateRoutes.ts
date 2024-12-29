@@ -14,10 +14,10 @@ router.get('/search', templateController.searchTemplates);
 router.get('/search/:tagId', templateController.searchTemplatesByTagId);
 
 router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, templateController.getProfile);
-router.get('/profile/private', authMiddleware.authenticate, templateController.getPrivateTemplatesByUserId);
-router.get('/profile/private/templates', authMiddleware.authenticate, templateController.getPrivateTemplatesForAccessibleUser);
+router.get('/profile/private/:userId([0-9]+)', authMiddleware.authenticate, templateController.getPrivateTemplatesByUserId);
+router.get('/profile/private/templates/:userId([0-9]+)', authMiddleware.authenticate, templateController.getPrivateTemplatesForAccessibleUser);
 
-router.post('/create', authMiddleware.authenticate, templateController.createTemplate);
+router.post('/create/:userId([0-9]+)', authMiddleware.authenticate, templateController.createTemplate);
 
 router.put('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, templateController.editTemplate);
 

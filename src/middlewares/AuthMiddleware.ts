@@ -49,8 +49,8 @@ class AuthMiddleware {
 
   isAuthor: RequestHandler = async (req, res, next) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) {
+      const user = req.user;
+      if (!user) {
         throw createHttpError(401, 'Unauthorized');
       }
   
@@ -64,9 +64,9 @@ class AuthMiddleware {
         throw createHttpError(400, 'Form Id is required');
       }
   
-      const isAuthorOfTemplate = await this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
-      const isAuthorOfForm = await this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(formId));
-      if (!isAuthorOfTemplate && !isAuthorOfForm) {
+      const isAuthorOfTemplate = await this.userService.checkIfUserIsAuthorOFTemplate(user.id, parseInt(templateId));
+      const isAuthorOfForm = await this.userService.checkIfUserIsAuthorOfForm(user.id, parseInt(formId));
+      if (!isAuthorOfTemplate && !isAuthorOfForm && user.role !== UserRole.ADMIN) {
         throw createHttpError(403, 'Forbidden - You are not allowed');
       }
   
@@ -80,8 +80,8 @@ class AuthMiddleware {
 
   isTemplateAuthor: RequestHandler = async (req, res, next) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) {
+      const user = req.user;
+      if (!user) {
         throw createHttpError(401, 'Unauthorized');
       }
   
@@ -90,8 +90,8 @@ class AuthMiddleware {
         throw createHttpError(400, 'Template Id is required');
       }
   
-      const isAuthorOfTemplate = await this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
-      if (!isAuthorOfTemplate) {
+      const isAuthorOfTemplate = await this.userService.checkIfUserIsAuthorOFTemplate(user.id, parseInt(templateId));
+      if (!isAuthorOfTemplate && user.role !== UserRole.ADMIN) {
         throw createHttpError(403, 'Forbidden - You are not allowed');
       }
 
