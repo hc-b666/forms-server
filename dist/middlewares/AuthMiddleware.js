@@ -48,10 +48,9 @@ class AuthMiddleware {
             }
         });
         this.isAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-                if (!userId) {
+                const user = req.user;
+                if (!user) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }
                 const { templateId } = req.params;
@@ -62,9 +61,9 @@ class AuthMiddleware {
                 if (!formId || isNaN(parseInt(formId))) {
                     throw (0, http_errors_1.default)(400, 'Form Id is required');
                 }
-                const isAuthorOfTemplate = yield this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
-                const isAuthorOfForm = yield this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(formId));
-                if (!isAuthorOfTemplate && !isAuthorOfForm) {
+                const isAuthorOfTemplate = yield this.userService.checkIfUserIsAuthorOFTemplate(user.id, parseInt(templateId));
+                const isAuthorOfForm = yield this.userService.checkIfUserIsAuthorOfForm(user.id, parseInt(formId));
+                if (!isAuthorOfTemplate && !isAuthorOfForm && user.role !== client_1.UserRole.ADMIN) {
                     throw (0, http_errors_1.default)(403, 'Forbidden - You are not allowed');
                 }
                 req.templateId = parseInt(templateId);
@@ -75,18 +74,17 @@ class AuthMiddleware {
             }
         });
         this.isTemplateAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-                if (!userId) {
+                const user = req.user;
+                if (!user) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }
                 const { templateId } = req.params;
                 if (!templateId || isNaN(parseInt(templateId))) {
                     throw (0, http_errors_1.default)(400, 'Template Id is required');
                 }
-                const isAuthorOfTemplate = yield this.userService.checkIfUserIsAuthorOFTemplate(userId, parseInt(templateId));
-                if (!isAuthorOfTemplate) {
+                const isAuthorOfTemplate = yield this.userService.checkIfUserIsAuthorOFTemplate(user.id, parseInt(templateId));
+                if (!isAuthorOfTemplate && user.role !== client_1.UserRole.ADMIN) {
                     throw (0, http_errors_1.default)(403, 'Forbidden - You are not allowed');
                 }
                 req.templateId = parseInt(templateId);

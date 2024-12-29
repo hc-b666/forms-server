@@ -12,8 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const http_errors_1 = __importDefault(require("http-errors"));
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const crypto_1 = __importDefault(require("crypto"));
 const userService_1 = __importDefault(require("../services/userService"));
 const jwt_1 = __importDefault(require("../utils/jwt"));
 const validateInput_1 = require("../utils/validateInput");
@@ -28,8 +31,60 @@ class AuthController {
                     throw (0, http_errors_1.default)(409, `User already exists with this email. Please login.`);
                 }
                 const passwordHash = yield bcrypt_1.default.hash(password, 10);
-                yield this.userService.createUser({ firstName, lastName, username, email, passwordHash });
-                res.status(200).json({ message: 'Successfully registered!' });
+                const token = crypto_1.default.randomBytes(32).toString('hex');
+                const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                yield this.prisma.verificationToken.create({
+                    data: {
+                        token,
+                        email,
+                        firstName,
+                        lastName,
+                        username,
+                        passwordHash,
+                        expires,
+                    },
+                });
+                const verificationUrl = `${process.env.FRONTEND_URL}/verify?token=${token}`;
+                yield this.transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: email,
+                    subject: 'Verify your email',
+                    html: `
+          <h1>Email Verification</h1>
+          <p>Hi ${firstName},</p>
+          <p>Please click the link below to verify your email and complete your registration:</p>
+          <a href="${verificationUrl}">Verify Email</a>
+          <p>This link will expire in 24 hours.</p>
+        `,
+                }),
+                    res.status(200).json({ message: 'Please check your email to verify your account.' });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.verifyEmail = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { token } = req.body;
+                const verificationData = yield this.prisma.verificationToken.findUnique({
+                    where: { token },
+                });
+                if (!verificationData) {
+                    throw (0, http_errors_1.default)(400, 'Invalid verification token');
+                }
+                if (verificationData.expires < new Date()) {
+                    throw (0, http_errors_1.default)(400, 'Verification token has expired');
+                }
+                yield this.userService.createUser({
+                    firstName: verificationData.firstName,
+                    lastName: verificationData.lastName,
+                    username: verificationData.username,
+                    email: verificationData.email,
+                    passwordHash: verificationData.passwordHash,
+                    verified: true,
+                });
+                yield this.prisma.verificationToken.delete({ where: { token } });
+                res.status(200).json({ message: 'Email verified successfully. Please login.' });
             }
             catch (err) {
                 next(err);
@@ -42,6 +97,9 @@ class AuthController {
                 const user = yield this.userService.getUserByEmail(email);
                 if (!user) {
                     throw (0, http_errors_1.default)(400, `There is no user with this email`);
+                }
+                if (!user.verified) {
+                    throw (0, http_errors_1.default)(400, `Please verify your email before logging in`);
                 }
                 const isPasswordValid = yield bcrypt_1.default.compare(password, user.passwordHash);
                 if (!isPasswordValid) {
@@ -92,7 +150,15 @@ class AuthController {
                 next(err);
             }
         });
+        this.prisma = new client_1.PrismaClient();
         this.userService = userService_1.default.getInstance();
+        this.transporter = nodemailer_1.default.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD,
+            },
+        });
     }
 }
 exports.default = AuthController;

@@ -38,11 +38,28 @@ model User {
   createdAt    DateTime  @default(now())
   deletedAt    DateTime?
 
+  verified Boolean @default(false)
+
   templates      Template[]
   forms          Form[]
   accessControls AccessControl[]
   comments       Comment[]
   likes          Like[]
+}
+
+model VerificationToken {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  email        String
+  firstName    String
+  lastName     String
+  username     String
+  passwordHash String
+  expires      DateTime
+
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
 }
 
 model Template {
