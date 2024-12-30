@@ -292,6 +292,13 @@ class TemplateService {
                                     deletedAt: null,
                                 },
                             },
+                            likes: {
+                                where: {
+                                    user: {
+                                        deletedAt: null,
+                                    },
+                                },
+                            },
                         },
                     },
                 },
@@ -304,9 +311,10 @@ class TemplateService {
                 title: template.title,
                 description: template.description,
                 topic: template.topic,
-                createdAt: template.createdAt.toISOString(),
+                createdAt: template.createdAt,
                 responses: template._count.forms,
-                tags: template.tags.map((t) => t.tag.tagName),
+                likes: template._count.likes,
+                tags: template.tags.map((t) => t.tag),
             }));
         });
     }
@@ -334,6 +342,13 @@ class TemplateService {
                                     deletedAt: null,
                                 },
                             },
+                            likes: {
+                                where: {
+                                    user: {
+                                        deletedAt: null,
+                                    },
+                                },
+                            },
                         },
                     },
                 },
@@ -346,9 +361,10 @@ class TemplateService {
                 title: template.title,
                 description: template.description,
                 topic: template.topic,
-                createdAt: template.createdAt.toISOString(),
+                createdAt: template.createdAt,
                 responses: template._count.forms,
-                tags: template.tags.map((t) => t.tag.tagName),
+                likes: template._count.likes,
+                tags: template.tags.map((t) => t.tag),
             }));
         });
     }
@@ -368,6 +384,13 @@ class TemplateService {
                                     forms: {
                                         where: {
                                             deletedAt: null,
+                                        },
+                                    },
+                                    likes: {
+                                        where: {
+                                            user: {
+                                                deletedAt: null,
+                                            },
                                         },
                                     },
                                 },
@@ -396,9 +419,10 @@ class TemplateService {
                 title: accessible.template.title,
                 description: accessible.template.description,
                 topic: accessible.template.topic,
-                createdAt: accessible.template.createdAt.toISOString(),
+                createdAt: accessible.template.createdAt,
                 responses: accessible.template._count.forms,
-                tags: accessible.template.tags.map((t) => t.tag.tagName),
+                likes: accessible.template._count.likes,
+                tags: accessible.template.tags.map((t) => t.tag),
             }));
         });
     }
