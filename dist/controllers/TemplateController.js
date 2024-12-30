@@ -157,9 +157,9 @@ class TemplateController {
                 if (!templateId) {
                     throw (0, http_errors_1.default)(400, 'Template Id is required');
                 }
-                const { title, description, topic, tags } = req.body;
+                const { title, description, topic, tags, accessControls } = req.body;
                 (0, validateInput_1.validateInput)(req.body, ['title', 'description', 'topic', 'tags']);
-                const result = yield this.templateService.editTemplateDetails(templateId, { title, description, topic, tags });
+                const result = yield this.templateService.editTemplateDetails(templateId, { title, description, topic, tags, accessControls });
                 if (!result) {
                     throw (0, http_errors_1.default)(400, 'Could not update template');
                 }

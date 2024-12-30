@@ -95,7 +95,7 @@ class AuthMiddleware {
             }
         });
         this.isFormAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            var _a;
+            var _a, _b;
             try {
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!userId) {
@@ -106,7 +106,7 @@ class AuthMiddleware {
                     throw (0, http_errors_1.default)(400, 'Form Id is required');
                 }
                 const isAuthorOfForm = yield this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(formId));
-                if (!isAuthorOfForm) {
+                if (!isAuthorOfForm && ((_b = req.user) === null || _b === void 0 ? void 0 : _b.role) !== client_1.UserRole.ADMIN) {
                     throw (0, http_errors_1.default)(403, 'Forbidden - You are not allowed');
                 }
                 next();

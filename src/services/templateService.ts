@@ -18,6 +18,7 @@ interface EditTemplateDetails {
   description: string;
   topic: TemplateTopic;
   tags: string[];
+  accessControls: number[];
 }
 
 class TemplateService {
@@ -199,6 +200,16 @@ class TemplateService {
             email: true,
           },
         },
+        accessControls: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
         questions: {
           include: {
             options: {
@@ -239,6 +250,8 @@ class TemplateService {
             order: q.order,
           })),
           tags: template.tags.map((t) => t.tag.tagName),
+          accessControls: template.accessControls.map((ac) => ac.user),
+          isPublic: template.isPublic,
         }
       : null;
   }
@@ -542,6 +555,37 @@ class TemplateService {
 
     oldTags.forEach(async (tag) => {
       await this.tagService.deleteTemplateTag(templateId, tag.id);
+    });
+
+    const accessibles = await this.prisma.accessControl.findMany({
+      where: {
+        templateId,
+      },
+    });
+
+    const newUsers = data.accessControls?.filter(
+      (userId) => !accessibles.some((a) => a.userId === userId)
+    );
+
+    const oldUsers = accessibles.filter(
+      (a) => !data.accessControls.includes(a.userId)
+    );
+
+    newUsers.forEach(async (userId) =>
+      this.prisma.accessControl.create({
+        data: {
+          templateId,
+          userId,
+        },
+      })
+    );
+
+    oldUsers.forEach(async (a) => {
+      await this.prisma.accessControl.delete({
+        where: {
+          id: a.id,
+        },
+      });
     });
 
     return true;

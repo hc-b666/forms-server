@@ -187,6 +187,16 @@ class TemplateService {
                             email: true,
                         },
                     },
+                    accessControls: {
+                        select: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                },
+                            },
+                        },
+                    },
                     questions: {
                         include: {
                             options: {
@@ -226,6 +236,8 @@ class TemplateService {
                         order: q.order,
                     })),
                     tags: template.tags.map((t) => t.tag.tagName),
+                    accessControls: template.accessControls.map((ac) => ac.user),
+                    isPublic: template.isPublic,
                 }
                 : null;
         });
@@ -495,6 +507,7 @@ class TemplateService {
     }
     editTemplateDetails(templateId, data) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const template = yield this.prisma.template.findUnique({
                 where: { id: templateId },
             });
@@ -519,6 +532,28 @@ class TemplateService {
             }));
             oldTags.forEach((tag) => __awaiter(this, void 0, void 0, function* () {
                 yield this.tagService.deleteTemplateTag(templateId, tag.id);
+            }));
+            const accessibles = yield this.prisma.accessControl.findMany({
+                where: {
+                    templateId,
+                },
+            });
+            const newUsers = (_a = data.accessControls) === null || _a === void 0 ? void 0 : _a.filter((userId) => !accessibles.some((a) => a.userId === userId));
+            const oldUsers = accessibles.filter((a) => !data.accessControls.includes(a.userId));
+            newUsers.forEach((userId) => __awaiter(this, void 0, void 0, function* () {
+                return this.prisma.accessControl.create({
+                    data: {
+                        templateId,
+                        userId,
+                    },
+                });
+            }));
+            oldUsers.forEach((a) => __awaiter(this, void 0, void 0, function* () {
+                yield this.prisma.accessControl.delete({
+                    where: {
+                        id: a.id,
+                    },
+                });
             }));
             return true;
         });

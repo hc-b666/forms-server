@@ -127,6 +127,7 @@ class UserService {
                     email: {
                         contains: query,
                     },
+                    deletedAt: null,
                 },
             });
         });

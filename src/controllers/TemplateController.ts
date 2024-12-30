@@ -168,10 +168,10 @@ class TemplateController {
         throw createHttpError(400, 'Template Id is required');
       }
 
-      const { title, description, topic, tags } = req.body;
+      const { title, description, topic, tags, accessControls } = req.body;
       validateInput(req.body, ['title', 'description', 'topic', 'tags']);
       
-      const result = await this.templateService.editTemplateDetails(templateId, { title, description, topic, tags });
+      const result = await this.templateService.editTemplateDetails(templateId, { title, description, topic, tags, accessControls });
       if (!result) {
         throw createHttpError(400, 'Could not update template');
       }
