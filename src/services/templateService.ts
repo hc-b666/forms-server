@@ -18,6 +18,7 @@ interface EditTemplateDetails {
   description: string;
   topic: TemplateTopic;
   tags: string[];
+  accessControls: number[];
 }
 
 class TemplateService {
@@ -40,18 +41,6 @@ class TemplateService {
     return this.instance;
   }
 
-  private mapTemplateToDTO(template: any) {
-    return {
-      id: template.id,
-      title: template.title,
-      description: template.description,
-      topic: template.topic,
-      createdAt: template.createdAt.toISOString(),
-      creator: template.creator && { ...template.creator },
-      responses: template._count?.forms ?? 0,
-    };
-  }
-
   async getTemplates() {
     const templates = await this.prisma.template.findMany({
       select: {
@@ -60,6 +49,8 @@ class TemplateService {
         description: true,
         topic: true,
         createdAt: true,
+        imageId: true,
+        imageUrl: true,
         _count: {
           select: {
             forms: {
@@ -93,7 +84,17 @@ class TemplateService {
       },
     });
 
-    return templates.map(this.mapTemplateToDTO);
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      imageId: template.imageId,
+      imageUrl: template.imageUrl,
+    }));
   }
 
   async getTopTemplates(limit = 5) {
@@ -104,6 +105,8 @@ class TemplateService {
         description: true,
         topic: true,
         createdAt: true,
+        imageId: true,
+        imageUrl: true,
         _count: {
           select: {
             forms: {
@@ -138,7 +141,17 @@ class TemplateService {
       take: limit,
     });
 
-    return templates.map(this.mapTemplateToDTO);
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      imageId: template.imageId,
+      imageUrl: template.imageUrl,
+    }));
   }
 
   async getLatestTemplates(limit = 10) {
@@ -149,6 +162,8 @@ class TemplateService {
         description: true,
         topic: true,
         createdAt: true,
+        imageId: true,
+        imageUrl: true,
         _count: {
           select: {
             forms: {
@@ -181,7 +196,17 @@ class TemplateService {
       take: limit,
     });
 
-    return templates.map(this.mapTemplateToDTO);
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      imageId: template.imageId,
+      imageUrl: template.imageUrl,
+    }));
   }
 
   async getTemplateById(templateId: number) {
@@ -197,6 +222,16 @@ class TemplateService {
           select: {
             id: true,
             email: true,
+          },
+        },
+        accessControls: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
           },
         },
         questions: {
@@ -239,6 +274,10 @@ class TemplateService {
             order: q.order,
           })),
           tags: template.tags.map((t) => t.tag.tagName),
+          accessControls: template.accessControls.map((ac) => ac.user),
+          isPublic: template.isPublic,
+          imageId: template.imageId,
+          imageUrl: template.imageUrl,
         }
       : null;
   }
@@ -462,7 +501,7 @@ class TemplateService {
       });
     }
 
-    return template;
+    return template.id;
   }
 
   async searchTemplates(query: string) {
@@ -542,6 +581,37 @@ class TemplateService {
 
     oldTags.forEach(async (tag) => {
       await this.tagService.deleteTemplateTag(templateId, tag.id);
+    });
+
+    const accessibles = await this.prisma.accessControl.findMany({
+      where: {
+        templateId,
+      },
+    });
+
+    const newUsers = data.accessControls?.filter(
+      (userId) => !accessibles.some((a) => a.userId === userId)
+    );
+
+    const oldUsers = accessibles.filter(
+      (a) => !data.accessControls.includes(a.userId)
+    );
+
+    newUsers.forEach(async (userId) =>
+      this.prisma.accessControl.create({
+        data: {
+          templateId,
+          userId,
+        },
+      })
+    );
+
+    oldUsers.forEach(async (a) => {
+      await this.prisma.accessControl.delete({
+        where: {
+          id: a.id,
+        },
+      });
     });
 
     return true;

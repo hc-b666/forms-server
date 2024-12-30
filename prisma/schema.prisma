@@ -73,6 +73,9 @@ model Template {
   isPublic    Boolean       @default(false)
   deletedAt   DateTime?
 
+  imageId  String?
+  imageUrl String?
+
   questions      Question[]
   forms          Form[]
   accessControls AccessControl[]

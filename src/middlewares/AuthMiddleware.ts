@@ -115,7 +115,7 @@ class AuthMiddleware {
       }
   
       const isAuthorOfForm = await this.userService.checkIfUserIsAuthorOfForm(userId, parseInt(formId));
-      if (!isAuthorOfForm) {
+      if (!isAuthorOfForm && req.user?.role !== UserRole.ADMIN) {
         throw createHttpError(403, 'Forbidden - You are not allowed');
       }
   
