@@ -1,14 +1,19 @@
 import { RequestHandler } from 'express';
 import createHttpError from 'http-errors';
+import { google } from 'googleapis';
+import { Readable } from 'stream';
 
 import TemplateService from '../services/templateService';
 import { validateInput } from '../utils/validateInput';
+import { PrismaClient } from '@prisma/client';
 
 class TemplateController {
   private templateService: TemplateService;
+  private prisma: PrismaClient;
 
   constructor() {
     this.templateService = TemplateService.getInstance();
+    this.prisma = new PrismaClient();
   }
 
   getTopTemplates: RequestHandler = async (req, res, next) => {
@@ -102,16 +107,78 @@ class TemplateController {
         throw createHttpError(400, 'User id is required');
       }
 
-      await this.templateService.createTemplate({
+      const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+      const templateId = await this.templateService.createTemplate({
         title,
         description,
         createdBy: parseInt(userId),
         topic,
         type,
-        questions,
-        tags,
-        users,
+        questions: JSON.parse(questions),
+        tags: JSON.parse(tags),
+        users: JSON.parse(users),
       });
+
+      const file = req.file;
+      if (file) {
+        const auth = new google.auth.GoogleAuth({
+          credentials: {
+            type: process.env.GOOGLE_TYPE,
+            project_id: process.env.GOOGLE_PROJECT_ID,
+            private_key: process.env.GOOGLE_PRIVATE_KEY,
+            client_email: process.env.GOOGLE_CLIENT_EMAIL,
+            client_id: process.env.GOOGLE_CLIENT_ID,
+          },
+          scopes: ['https://www.googleapis.com/auth/drive'],
+        });
+    
+        const drive = google.drive({ version: 'v3', auth });
+    
+        const fileStream = new Readable();
+        fileStream.push(file.buffer);
+        fileStream.push(null);
+    
+        const fileMetaData = {
+          name: req.file?.originalname,
+          mimeType: req.file?.mimetype,
+        };
+    
+        const media = {
+          mimeType: req.file?.mimetype,
+          body: fileStream,
+          parents: [folderId],
+        };
+    
+        const response = await drive.files.create({
+          requestBody: fileMetaData,
+          media,
+          fields: 'id, webViewLink',
+        });
+    
+        await drive.permissions.create({
+          fileId: response.data.id!,
+          requestBody: {
+            role: 'reader',
+            type: 'anyone',
+          },
+        });
+        
+        const updatedFile = await drive.files.get({
+          fileId: response.data.id!,
+          fields: 'id, webViewLink',
+        });
+
+        await this.prisma.template.update({
+          where: {
+            id: templateId,
+          },
+          data: {
+            imageId: updatedFile.data.id,
+            imageUrl: `https://drive.google.com/uc?id=${updatedFile.data.id}`,
+          },
+        });
+      }
 
       res.status(200).json({ message: 'Successfully created template' });
     } catch (err) {

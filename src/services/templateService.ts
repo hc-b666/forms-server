@@ -41,18 +41,6 @@ class TemplateService {
     return this.instance;
   }
 
-  private mapTemplateToDTO(template: any) {
-    return {
-      id: template.id,
-      title: template.title,
-      description: template.description,
-      topic: template.topic,
-      createdAt: template.createdAt.toISOString(),
-      creator: template.creator && { ...template.creator },
-      responses: template._count?.forms ?? 0,
-    };
-  }
-
   async getTemplates() {
     const templates = await this.prisma.template.findMany({
       select: {
@@ -61,6 +49,8 @@ class TemplateService {
         description: true,
         topic: true,
         createdAt: true,
+        imageId: true,
+        imageUrl: true,
         _count: {
           select: {
             forms: {
@@ -94,7 +84,17 @@ class TemplateService {
       },
     });
 
-    return templates.map(this.mapTemplateToDTO);
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      imageId: template.imageId,
+      imageUrl: template.imageUrl,
+    }));
   }
 
   async getTopTemplates(limit = 5) {
@@ -105,6 +105,8 @@ class TemplateService {
         description: true,
         topic: true,
         createdAt: true,
+        imageId: true,
+        imageUrl: true,
         _count: {
           select: {
             forms: {
@@ -139,7 +141,17 @@ class TemplateService {
       take: limit,
     });
 
-    return templates.map(this.mapTemplateToDTO);
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      imageId: template.imageId,
+      imageUrl: template.imageUrl,
+    }));
   }
 
   async getLatestTemplates(limit = 10) {
@@ -150,6 +162,8 @@ class TemplateService {
         description: true,
         topic: true,
         createdAt: true,
+        imageId: true,
+        imageUrl: true,
         _count: {
           select: {
             forms: {
@@ -182,7 +196,17 @@ class TemplateService {
       take: limit,
     });
 
-    return templates.map(this.mapTemplateToDTO);
+    return templates.map((template) => ({
+      id: template.id,
+      title: template.title,
+      description: template.description,
+      topic: template.topic,
+      createdAt: template.createdAt.toISOString(),
+      creator: { ...template.creator },
+      responses: template._count.forms,
+      imageId: template.imageId,
+      imageUrl: template.imageUrl,
+    }));
   }
 
   async getTemplateById(templateId: number) {
@@ -252,6 +276,8 @@ class TemplateService {
           tags: template.tags.map((t) => t.tag.tagName),
           accessControls: template.accessControls.map((ac) => ac.user),
           isPublic: template.isPublic,
+          imageId: template.imageId,
+          imageUrl: template.imageUrl,
         }
       : null;
   }
@@ -475,7 +501,7 @@ class TemplateService {
       });
     }
 
-    return template;
+    return template.id;
   }
 
   async searchTemplates(query: string) {

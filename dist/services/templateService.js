@@ -27,18 +27,6 @@ class TemplateService {
         }
         return this.instance;
     }
-    mapTemplateToDTO(template) {
-        var _a, _b;
-        return {
-            id: template.id,
-            title: template.title,
-            description: template.description,
-            topic: template.topic,
-            createdAt: template.createdAt.toISOString(),
-            creator: template.creator && Object.assign({}, template.creator),
-            responses: (_b = (_a = template._count) === null || _a === void 0 ? void 0 : _a.forms) !== null && _b !== void 0 ? _b : 0,
-        };
-    }
     getTemplates() {
         return __awaiter(this, void 0, void 0, function* () {
             const templates = yield this.prisma.template.findMany({
@@ -48,6 +36,8 @@ class TemplateService {
                     description: true,
                     topic: true,
                     createdAt: true,
+                    imageId: true,
+                    imageUrl: true,
                     _count: {
                         select: {
                             forms: {
@@ -80,7 +70,17 @@ class TemplateService {
                     },
                 },
             });
-            return templates.map(this.mapTemplateToDTO);
+            return templates.map((template) => ({
+                id: template.id,
+                title: template.title,
+                description: template.description,
+                topic: template.topic,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
+                responses: template._count.forms,
+                imageId: template.imageId,
+                imageUrl: template.imageUrl,
+            }));
         });
     }
     getTopTemplates() {
@@ -92,6 +92,8 @@ class TemplateService {
                     description: true,
                     topic: true,
                     createdAt: true,
+                    imageId: true,
+                    imageUrl: true,
                     _count: {
                         select: {
                             forms: {
@@ -125,7 +127,17 @@ class TemplateService {
                 },
                 take: limit,
             });
-            return templates.map(this.mapTemplateToDTO);
+            return templates.map((template) => ({
+                id: template.id,
+                title: template.title,
+                description: template.description,
+                topic: template.topic,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
+                responses: template._count.forms,
+                imageId: template.imageId,
+                imageUrl: template.imageUrl,
+            }));
         });
     }
     getLatestTemplates() {
@@ -137,6 +149,8 @@ class TemplateService {
                     description: true,
                     topic: true,
                     createdAt: true,
+                    imageId: true,
+                    imageUrl: true,
                     _count: {
                         select: {
                             forms: {
@@ -168,7 +182,17 @@ class TemplateService {
                 },
                 take: limit,
             });
-            return templates.map(this.mapTemplateToDTO);
+            return templates.map((template) => ({
+                id: template.id,
+                title: template.title,
+                description: template.description,
+                topic: template.topic,
+                createdAt: template.createdAt.toISOString(),
+                creator: Object.assign({}, template.creator),
+                responses: template._count.forms,
+                imageId: template.imageId,
+                imageUrl: template.imageUrl,
+            }));
         });
     }
     getTemplateById(templateId) {
@@ -238,6 +262,8 @@ class TemplateService {
                     tags: template.tags.map((t) => t.tag.tagName),
                     accessControls: template.accessControls.map((ac) => ac.user),
                     isPublic: template.isPublic,
+                    imageId: template.imageId,
+                    imageUrl: template.imageUrl,
                 }
                 : null;
         });
@@ -456,7 +482,7 @@ class TemplateService {
                     yield this.tagService.createTemplateTag(template.id, tag.id);
                 }));
             }
-            return template;
+            return template.id;
         });
     }
     searchTemplates(query) {

@@ -1,6 +1,14 @@
 import express from 'express';
+import multer from 'multer';
 import AuthMiddleware from '../middlewares/AuthMiddleware';
 import TemplateController from '../controllers/TemplateController';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fieldSize: 5 * 1024 * 1024,
+  },
+});
 
 const router = express.Router();
 const authMiddleware = new AuthMiddleware();
@@ -17,7 +25,7 @@ router.get('/profile/:userId([0-9]+)', authMiddleware.authenticate, templateCont
 router.get('/profile/private/:userId([0-9]+)', authMiddleware.authenticate, templateController.getPrivateTemplatesByUserId);
 router.get('/profile/private/templates/:userId([0-9]+)', authMiddleware.authenticate, templateController.getPrivateTemplatesForAccessibleUser);
 
-router.post('/create/:userId([0-9]+)', authMiddleware.authenticate, templateController.createTemplate);
+router.post('/create/:userId([0-9]+)', upload.single('image'), authMiddleware.authenticate, templateController.createTemplate);
 
 router.put('/:templateId([0-9]+)', authMiddleware.authenticate, authMiddleware.isTemplateAuthor, templateController.editTemplate);
 
