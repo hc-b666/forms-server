@@ -218,6 +218,15 @@ class TemplateService {
         },
       },
       include: {
+        _count: {
+          select: {
+            forms: {
+              where: {
+                deletedAt: null,
+              },
+            },
+          },
+        },
         creator: {
           select: {
             id: true,
@@ -273,7 +282,8 @@ class TemplateService {
             options: q.options,
             order: q.order,
           })),
-          tags: template.tags.map((t) => t.tag.tagName),
+          responses: template._count.forms,
+          tags: template.tags.map((t) => t.tag),
           accessControls: template.accessControls.map((ac) => ac.user),
           isPublic: template.isPublic,
           imageId: template.imageId,
