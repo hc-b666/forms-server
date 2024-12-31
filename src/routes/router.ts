@@ -1,6 +1,6 @@
 import express from 'express';
 
-import authRoutes from './authRoutes';
+import { authRoutes } from '../modules/auth';
 import templateRoutes from './templateRoutes';
 import formRoutes from './formRoutes';
 import commentRoutes from './commentRoutes';
