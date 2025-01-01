@@ -20,18 +20,7 @@ class CommentService {
         }
         return this.instance;
     }
-    createComment(templateId, authorId, content) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.prisma.comment.create({
-                data: {
-                    templateId,
-                    authorId,
-                    content,
-                },
-            });
-        });
-    }
-    getCommentByTemplateId(templateId) {
+    findComments(templateId) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.prisma.comment.findMany({
                 select: {
@@ -53,6 +42,17 @@ class CommentService {
                 },
                 orderBy: {
                     createdAt: 'desc',
+                },
+            });
+        });
+    }
+    create(templateId, authorId, content) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.comment.create({
+                data: {
+                    templateId,
+                    authorId,
+                    content,
                 },
             });
         });

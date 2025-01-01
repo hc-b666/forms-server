@@ -13,45 +13,47 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const http_errors_1 = __importDefault(require("http-errors"));
-const commentService_1 = __importDefault(require("../services/commentService"));
+const comment_service_1 = __importDefault(require("./comment.service"));
+const comment_dto_1 = require("./dto/comment.dto");
 class CommentController {
     constructor() {
-        this.getCommentsByTemplateId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.validateId = (id) => {
+            if (!id || isNaN(parseInt(id))) {
+                throw (0, http_errors_1.default)(400, 'Template Id is required');
+            }
+            return parseInt(id);
+        };
+        this.findComments = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { templateId } = req.params;
-                if (!templateId) {
-                    throw (0, http_errors_1.default)(400, 'Template Id is required');
-                }
-                const comments = yield this.commentService.getCommentByTemplateId(parseInt(templateId));
+                const templateId = this.validateId(req.params.templateId);
+                const comments = yield this.commentService.findComments(templateId);
                 res.status(200).json(comments);
             }
             catch (err) {
                 next(err);
             }
         });
-        this.createComment = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.create = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
-                const { templateId } = req.params;
-                if (!templateId) {
-                    throw (0, http_errors_1.default)(400, 'Template Id is required');
-                }
+                const templateId = this.validateId(req.params.templateId);
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!userId) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }
-                const { content } = req.body;
-                if (!content) {
-                    throw (0, http_errors_1.default)(400, 'Content is required to comment');
+                const result = comment_dto_1.commentSchema.safeParse(req.body);
+                if (!result.success) {
+                    const firstError = result.error.errors[0];
+                    throw (0, http_errors_1.default)(400, firstError.message);
                 }
-                yield this.commentService.createComment(parseInt(templateId), userId, content);
+                yield this.commentService.create(templateId, userId, result.data.content);
                 res.status(200).json({ message: 'Successfully created comment' });
             }
             catch (err) {
                 next(err);
             }
         });
-        this.commentService = commentService_1.default.getInstance();
+        this.commentService = comment_service_1.default.getInstance();
     }
 }
-exports.default = CommentController;
+exports.default = new CommentController();

@@ -16,17 +16,7 @@ class CommentService {
     return this.instance;
   }
 
-  async createComment(templateId: number, authorId: number, content: string) {
-    return await this.prisma.comment.create({
-      data: {
-        templateId,
-        authorId,
-        content,
-      },
-    });
-  }
-
-  async getCommentByTemplateId(templateId: number) {
+  async findComments(templateId: number) {
     return await this.prisma.comment.findMany({
       select: {
         id: true,
@@ -47,6 +37,16 @@ class CommentService {
       },
       orderBy: {
         createdAt: 'desc',
+      },
+    });
+  }
+
+  async create(templateId: number, authorId: number, content: string) {
+    return await this.prisma.comment.create({
+      data: {
+        templateId,
+        authorId,
+        content,
       },
     });
   }
