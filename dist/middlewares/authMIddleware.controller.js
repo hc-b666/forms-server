@@ -39,6 +39,24 @@ class AuthMiddlewareController {
             }
             return user;
         });
+        this.addUserToRequest = (req, _res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const authHeader = req.headers.authorization;
+                if (authHeader) {
+                    const token = jwt_1.default.extractTokenFromHeader(authHeader);
+                    const decoded = jwt_1.default.verifyToken(token);
+                    req.user = {
+                        id: decoded.userId,
+                        email: decoded.email,
+                        role: decoded.role,
+                    };
+                }
+                next();
+            }
+            catch (err) {
+                next(err);
+            }
+        });
         this.authenticate = (req, _res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const decoded = this.validateAuthHeader(req.headers.authorization);

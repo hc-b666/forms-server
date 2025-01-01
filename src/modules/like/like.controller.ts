@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import createHttpError from 'http-errors';
 
-import LikeService from '../services/likeService';
+import LikeService from './like.service';
 
 class LikeController {
   private likeService: LikeService;
@@ -10,16 +10,21 @@ class LikeController {
     this.likeService = LikeService.getInstance();
   }
 
-  getTemplateLikes: RequestHandler = async (req, res, next) => {
+  private validateId = (id: string): number => {
+    if (!id || isNaN(parseInt(id))) {
+      throw createHttpError(400, 'Invalid templateId');
+    }
+
+    return parseInt(id);
+  };
+
+  findLikes: RequestHandler = async (req, res, next) => {
     try {
-      const templateId = parseInt(req.params.templateId);
-      if (isNaN(templateId)) {
-        throw createHttpError(400, 'Invalid template id');
-      }
+      const templateId = this.validateId(req.params.templateId);
 
       const userId = req.user?.id;
       if (userId) {
-        const likeInfo = await this.likeService.getTemplateLikes(userId, templateId);
+        const likeInfo = await this.likeService.findLikes(userId, templateId);
         res.json(likeInfo);
       } else {
         const likeCount = await this.likeService.getLikeCount(templateId);
@@ -30,19 +35,16 @@ class LikeController {
     }
   };
 
-  toggleTemplateLike: RequestHandler = async (req, res, next) => {
+  toggleLike: RequestHandler = async (req, res, next) => {
     try {
-      const templateId = parseInt(req.params.templateId);
-      if (isNaN(templateId)) {
-        throw createHttpError(400, 'Invalid template id');
-      }
+      const templateId = this.validateId(req.params.templateId);
 
       const userId = req.user?.id;
       if (!userId) {
         throw createHttpError(401, 'Unauthorized');
       }
 
-      const isLiked = await this.likeService.toggleLikeTemplate(userId, templateId);
+      const isLiked = await this.likeService.toggleLike(userId, templateId);
 
       res.json({ message: isLiked ? 'Template liked' : 'Template unliked' });
     } catch (err) {

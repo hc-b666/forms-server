@@ -13,19 +13,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const http_errors_1 = __importDefault(require("http-errors"));
-const likeService_1 = __importDefault(require("../services/likeService"));
+const like_service_1 = __importDefault(require("./like.service"));
 class LikeController {
     constructor() {
-        this.getTemplateLikes = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.validateId = (id) => {
+            if (!id || isNaN(parseInt(id))) {
+                throw (0, http_errors_1.default)(400, 'Invalid templateId');
+            }
+            return parseInt(id);
+        };
+        this.findLikes = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
-                const templateId = parseInt(req.params.templateId);
-                if (isNaN(templateId)) {
-                    throw (0, http_errors_1.default)(400, 'Invalid template id');
-                }
+                const templateId = this.validateId(req.params.templateId);
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (userId) {
-                    const likeInfo = yield this.likeService.getTemplateLikes(userId, templateId);
+                    const likeInfo = yield this.likeService.findLikes(userId, templateId);
                     res.json(likeInfo);
                 }
                 else {
@@ -37,25 +40,22 @@ class LikeController {
                 next(err);
             }
         });
-        this.toggleTemplateLike = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.toggleLike = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
-                const templateId = parseInt(req.params.templateId);
-                if (isNaN(templateId)) {
-                    throw (0, http_errors_1.default)(400, 'Invalid template id');
-                }
+                const templateId = this.validateId(req.params.templateId);
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!userId) {
                     throw (0, http_errors_1.default)(401, 'Unauthorized');
                 }
-                const isLiked = yield this.likeService.toggleLikeTemplate(userId, templateId);
+                const isLiked = yield this.likeService.toggleLike(userId, templateId);
                 res.json({ message: isLiked ? 'Template liked' : 'Template unliked' });
             }
             catch (err) {
                 next(err);
             }
         });
-        this.likeService = likeService_1.default.getInstance();
+        this.likeService = like_service_1.default.getInstance();
     }
 }
 exports.default = new LikeController();

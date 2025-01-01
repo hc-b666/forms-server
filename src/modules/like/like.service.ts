@@ -9,14 +9,14 @@ class LikeService {
   }
 
   public static getInstance(): LikeService {
-    if (!LikeService.instance) {
-      LikeService.instance = new LikeService();
+    if (!this.instance) {
+      this.instance = new LikeService();
     }
 
-    return LikeService.instance;
+    return this.instance;
   }
 
-  async getTemplateLikes(userId: number, templateId: number) {
+  async findLikes(userId: number, templateId: number) {
     const isLiked = await this.prisma.like.findUnique({
       where: {
         userId_templateId: {
@@ -49,7 +49,7 @@ class LikeService {
     });
   }
 
-  async toggleLikeTemplate(userId: number, templateId: number) {
+  async toggleLike(userId: number, templateId: number) {
     const existingLike = await this.prisma.like.findUnique({
       where: {
         userId_templateId: {

@@ -15,12 +15,12 @@ class LikeService {
         this.prisma = new client_1.PrismaClient();
     }
     static getInstance() {
-        if (!LikeService.instance) {
-            LikeService.instance = new LikeService();
+        if (!this.instance) {
+            this.instance = new LikeService();
         }
-        return LikeService.instance;
+        return this.instance;
     }
-    getTemplateLikes(userId, templateId) {
+    findLikes(userId, templateId) {
         return __awaiter(this, void 0, void 0, function* () {
             const isLiked = yield this.prisma.like.findUnique({
                 where: {
@@ -53,7 +53,7 @@ class LikeService {
             });
         });
     }
-    toggleLikeTemplate(userId, templateId) {
+    toggleLike(userId, templateId) {
         return __awaiter(this, void 0, void 0, function* () {
             const existingLike = yield this.prisma.like.findUnique({
                 where: {

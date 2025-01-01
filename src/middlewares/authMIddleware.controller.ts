@@ -40,6 +40,26 @@ class AuthMiddlewareController {
     return user;
   };
 
+  addUserToRequest: RequestHandler = async (req, _res, next) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const token = TokenService.extractTokenFromHeader(authHeader);
+        const decoded = TokenService.verifyToken(token);
+
+        req.user = {
+          id: decoded.userId,
+          email: decoded.email,
+          role: decoded.role,
+        };
+      }
+      
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+
   authenticate: RequestHandler = async (req, _res, next) => {
     try {
       const decoded = this.validateAuthHeader(req.headers.authorization);

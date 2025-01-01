@@ -7,7 +7,7 @@ import { commentRoutes } from '../modules/comment';
 import tagRoutes from './tagRoutes';
 import userRoutes from './userRoutes';
 import { adminRoutes } from '../modules/admin';
-import likeRoutes from './likeRoutes';
+import { likeRoutes } from '../modules/like';
 
 const router = express.Router();
 
