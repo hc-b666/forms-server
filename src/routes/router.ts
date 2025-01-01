@@ -4,7 +4,7 @@ import { authRoutes } from '../modules/auth';
 import templateRoutes from './templateRoutes';
 import formRoutes from './formRoutes';
 import { commentRoutes } from '../modules/comment';
-import tagRoutes from './tagRoutes';
+import { tagRoutes } from '../modules/tag';
 import userRoutes from './userRoutes';
 import { adminRoutes } from '../modules/admin';
 import { likeRoutes } from '../modules/like';
