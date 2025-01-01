@@ -16,7 +16,7 @@ const client_1 = require("@prisma/client");
 const http_errors_1 = __importDefault(require("http-errors"));
 const jwt_1 = __importDefault(require("../utils/jwt"));
 const authMiddlware_service_1 = __importDefault(require("./authMiddlware.service"));
-class AuthMiddleware {
+class AuthMiddlewareController {
     constructor() {
         this.validateAuthHeader = (authHeader) => {
             if (!authHeader) {
@@ -133,4 +133,4 @@ class AuthMiddleware {
         this.authMiddlewareService = authMiddlware_service_1.default.getInstance();
     }
 }
-exports.default = AuthMiddleware;
+exports.default = new AuthMiddlewareController();

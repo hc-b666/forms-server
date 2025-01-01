@@ -21,17 +21,9 @@ class UserService {
   }
 
   async checkUserExists(email: string) {
-    const user = await this.prisma.user.findUnique({ 
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        isBlocked: true,
-      },
+    return await this.prisma.user.findUnique({
       where: { email },
     });
-
-    return user;
   }
 
   async getUserByEmail(email: string) {
@@ -87,7 +79,7 @@ class UserService {
     return form ? true : false;
   }
 
-  async checkIfUserIsAuthorOFTemplate(userId: number, templateId: number) {
+  async checkIfUserIsAuthorOfTemplate(userId: number, templateId: number) {
     const template = await this.prisma.template.findFirst({
       where: { id: templateId, createdBy: userId },
     });
@@ -100,7 +92,7 @@ class UserService {
       where: {
         id: formId,
         authorId: userId,
-      }
+      },
     });
 
     return form ? true : false;

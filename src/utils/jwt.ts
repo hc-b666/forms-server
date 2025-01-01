@@ -5,7 +5,7 @@ import { UserRole } from '@prisma/client';
 
 dotenv.config();
 
-interface ITokenPayload extends JwtPayload {
+export interface ITokenPayload extends JwtPayload {
   userId: number;
   email: string;
   exp: number;

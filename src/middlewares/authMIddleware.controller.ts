@@ -5,7 +5,7 @@ import createHttpError from 'http-errors';
 import TokenService, { ITokenPayload } from '../utils/jwt';
 import AuthMiddlewareService from './authMiddlware.service';
 
-class AuthMiddleware {
+class AuthMiddlewareController {
   private authMiddlewareService: AuthMiddlewareService;
   
   constructor() {
@@ -148,4 +148,4 @@ class AuthMiddleware {
   };
 }
 
-export default AuthMiddleware;
+export default new AuthMiddlewareController();
