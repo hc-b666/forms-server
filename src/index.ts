@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 
-import router from './routes/router';
-import { endpointNotFount, errorMiddleware } from './errors';
+import router from './router';
+import { endpointNotFound, errorMiddleware } from './utils/errors';
 
 const corsConfig = {
   origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
@@ -17,7 +17,7 @@ app.use(cors(corsConfig));
 
 app.use('/api/v1', router);
 
-app.use(endpointNotFount);
+app.use(endpointNotFound);
 app.use(errorMiddleware);
 
 app.listen(3000, () => {
