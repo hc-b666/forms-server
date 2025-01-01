@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import AuthMiddleware from '../../middlewares/authMiddleware.controller';
+import { AuthMiddleware } from '../../utils/auth-middleware';
 import templateController from './template.controller';
 
 const upload = multer({
