@@ -20,6 +20,19 @@ class TagService {
     return await this.prisma.tag.findMany({ take: 20 });
   }
 
+  async findTagsByTemplateId(templateId: number) {
+    const tags = await this.prisma.templateTag.findMany({
+      where: {
+        templateId,
+      },
+      include: {
+        tag: true,
+      },
+    });
+
+    return tags.map((tag) => tag.tag);
+  }
+
   async searchTags(query: string) {
     return await this.prisma.tag.findMany({
       where: {
@@ -28,6 +41,34 @@ class TagService {
         },
       },
       take: 10,
+    });
+  }
+
+  async createTag(tagName: string) {
+    return await this.prisma.tag.upsert({
+      where: { tagName },
+      update: {},
+      create: { tagName },
+    });
+  }
+
+  async createTemplateTag(templateId: number, tagId: number) {
+    return await this.prisma.templateTag.create({
+      data: {
+        templateId,
+        tagId,
+      },
+    });
+  }
+
+  async deleteTemplateTag(templateId: number, tagId: number) {
+    return await this.prisma.templateTag.delete({
+      where: {
+        tagId_templateId: {
+          tagId,
+          templateId,
+        },
+      },
     });
   }
 }

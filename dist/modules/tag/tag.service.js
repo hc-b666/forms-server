@@ -25,6 +25,19 @@ class TagService {
             return yield this.prisma.tag.findMany({ take: 20 });
         });
     }
+    findTagsByTemplateId(templateId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tags = yield this.prisma.templateTag.findMany({
+                where: {
+                    templateId,
+                },
+                include: {
+                    tag: true,
+                },
+            });
+            return tags.map((tag) => tag.tag);
+        });
+    }
     searchTags(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.prisma.tag.findMany({
@@ -34,6 +47,37 @@ class TagService {
                     },
                 },
                 take: 10,
+            });
+        });
+    }
+    createTag(tagName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.tag.upsert({
+                where: { tagName },
+                update: {},
+                create: { tagName },
+            });
+        });
+    }
+    createTemplateTag(templateId, tagId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.templateTag.create({
+                data: {
+                    templateId,
+                    tagId,
+                },
+            });
+        });
+    }
+    deleteTemplateTag(templateId, tagId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.templateTag.delete({
+                where: {
+                    tagId_templateId: {
+                        tagId,
+                        templateId,
+                    },
+                },
             });
         });
     }

@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const auth_1 = require("../modules/auth");
-const templateRoutes_1 = __importDefault(require("./templateRoutes"));
+const template_1 = require("../modules/template");
 const formRoutes_1 = __importDefault(require("./formRoutes"));
 const comment_1 = require("../modules/comment");
 const tag_1 = require("../modules/tag");
@@ -14,7 +14,7 @@ const admin_1 = require("../modules/admin");
 const like_1 = require("../modules/like");
 const router = express_1.default.Router();
 router.use('/auth', auth_1.authRoutes);
-router.use('/templates', templateRoutes_1.default);
+router.use('/templates', template_1.templateRoutes);
 router.use('/forms', formRoutes_1.default);
 router.use('/comments', comment_1.commentRoutes);
 router.use('/tags', tag_1.tagRoutes);
