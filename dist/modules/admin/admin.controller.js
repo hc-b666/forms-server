@@ -12,17 +12,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const adminService_1 = __importDefault(require("../services/adminService"));
+const admin_service_1 = __importDefault(require("./admin.service"));
 const http_errors_1 = __importDefault(require("http-errors"));
 class AdminController {
     constructor() {
-        this.blockUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.validateUserId = (userId) => {
+            if (!userId || isNaN(parseInt(userId))) {
+                throw (0, http_errors_1.default)(400, 'UserId is required');
+            }
+            return parseInt(userId);
+        };
+        this.findUsers = (_req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId } = req.params;
-                if (!userId) {
-                    throw (0, http_errors_1.default)(400, 'UserId is required');
-                }
-                const result = yield this.adminService.blockUser(parseInt(userId));
+                const users = yield this.adminService.findUsers();
+                res.status(200).json(users);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.block = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = this.validateUserId(req.params.userId);
+                const result = yield this.adminService.block(userId);
                 if (!result) {
                     throw (0, http_errors_1.default)(404, `User with ${userId} is not found`);
                 }
@@ -32,13 +44,10 @@ class AdminController {
                 next(err);
             }
         });
-        this.unblockUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.unblock = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId } = req.params;
-                if (!userId) {
-                    throw (0, http_errors_1.default)(400, 'UserId is required');
-                }
-                const result = yield this.adminService.unblockUser(parseInt(userId));
+                const userId = this.validateUserId(req.params.userId);
+                const result = yield this.adminService.unblock(userId);
                 if (!result) {
                     throw (0, http_errors_1.default)(404, `User with ${userId} is not found`);
                 }
@@ -48,13 +57,10 @@ class AdminController {
                 next(err);
             }
         });
-        this.promoteToAdmin = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.promote = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId } = req.params;
-                if (!userId) {
-                    throw (0, http_errors_1.default)(400, 'UserId is required');
-                }
-                const result = yield this.adminService.promoteToAdmin(parseInt(userId));
+                const userId = this.validateUserId(req.params.userId);
+                const result = yield this.adminService.promote(userId);
                 if (!result) {
                     throw (0, http_errors_1.default)(404, `User with ${userId} is not found`);
                 }
@@ -64,13 +70,10 @@ class AdminController {
                 next(err);
             }
         });
-        this.demoteToUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.demote = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId } = req.params;
-                if (!userId) {
-                    throw (0, http_errors_1.default)(400, 'UserId is required');
-                }
-                const result = yield this.adminService.demoteToUser(parseInt(userId));
+                const userId = this.validateUserId(req.params.userId);
+                const result = yield this.adminService.demote(userId);
                 if (!result) {
                     throw (0, http_errors_1.default)(404, `User with ${userId} is not found`);
                 }
@@ -80,13 +83,10 @@ class AdminController {
                 next(err);
             }
         });
-        this.deleteUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.delete = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { userId } = req.params;
-                if (!userId) {
-                    throw (0, http_errors_1.default)(400, 'UserId is required');
-                }
-                const result = yield this.adminService.deleteUser(parseInt(userId));
+                const userId = this.validateUserId(req.params.userId);
+                const result = yield this.adminService.delete(userId);
                 if (!result) {
                     throw (0, http_errors_1.default)(404, `User with ${userId} is not found`);
                 }
@@ -96,7 +96,7 @@ class AdminController {
                 next(err);
             }
         });
-        this.adminService = adminService_1.default.getInstance();
+        this.adminService = admin_service_1.default.getInstance();
     }
 }
 exports.default = new AdminController();

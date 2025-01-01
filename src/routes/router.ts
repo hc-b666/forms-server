@@ -6,7 +6,7 @@ import formRoutes from './formRoutes';
 import commentRoutes from './commentRoutes';
 import tagRoutes from './tagRoutes';
 import userRoutes from './userRoutes';
-import adminRoutes from './adminRoutes';
+import { adminRoutes } from '../modules/admin';
 import likeRoutes from './likeRoutes';
 
 const router = express.Router();

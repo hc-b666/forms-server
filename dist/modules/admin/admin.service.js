@@ -8,15 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const userService_1 = __importDefault(require("./userService"));
 class AdminService {
     constructor() {
-        this.userService = userService_1.default.getInstance();
         this.prisma = new client_1.PrismaClient();
     }
     static getInstance() {
@@ -25,9 +20,39 @@ class AdminService {
         }
         return this.instance;
     }
-    blockUser(userId) {
+    findUsers() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(yield this.userService.getUserById(userId))) {
+            return yield this.prisma.user.findMany({
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    username: true,
+                    email: true,
+                    isBlocked: true,
+                    role: true,
+                },
+                where: {
+                    deletedAt: null,
+                },
+                orderBy: {
+                    id: 'asc',
+                },
+            });
+        });
+    }
+    findUserById(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+        });
+    }
+    block(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!(yield this.findUserById(userId))) {
                 return false;
             }
             yield this.prisma.user.update({
@@ -41,9 +66,9 @@ class AdminService {
             return true;
         });
     }
-    unblockUser(userId) {
+    unblock(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(yield this.userService.getUserById(userId))) {
+            if (!(yield this.findUserById(userId))) {
                 return false;
             }
             yield this.prisma.user.update({
@@ -57,9 +82,9 @@ class AdminService {
             return true;
         });
     }
-    promoteToAdmin(userId) {
+    promote(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(yield this.userService.getUserById(userId))) {
+            if (!(yield this.findUserById(userId))) {
                 return false;
             }
             yield this.prisma.user.update({
@@ -73,9 +98,9 @@ class AdminService {
             return true;
         });
     }
-    demoteToUser(userId) {
+    demote(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(yield this.userService.getUserById(userId))) {
+            if (!(yield this.findUserById(userId))) {
                 return false;
             }
             yield this.prisma.user.update({
@@ -89,9 +114,9 @@ class AdminService {
             return true;
         });
     }
-    deleteUser(userId) {
+    delete(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(yield this.userService.getUserById(userId))) {
+            if (!(yield this.findUserById(userId))) {
                 return false;
             }
             yield this.prisma.user.update({

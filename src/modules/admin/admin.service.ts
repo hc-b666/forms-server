@@ -1,13 +1,10 @@
-import { PrismaClient, UserRole } from "@prisma/client";
-import UserService from "./userService";
+import { PrismaClient, UserRole } from '@prisma/client';
 
 export default class AdminService {
-  private userService: UserService;
   private prisma: PrismaClient;
   private static instance: AdminService;
 
   private constructor() {
-    this.userService = UserService.getInstance();
     this.prisma = new PrismaClient();
   }
 
@@ -19,8 +16,36 @@ export default class AdminService {
     return this.instance;
   }
 
-  async blockUser(userId: number) {
-    if (!await this.userService.getUserById(userId)) {
+  async findUsers() {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+        email: true,
+        isBlocked: true,
+        role: true,
+      },
+      where: {
+        deletedAt: null,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+  }
+
+  private async findUserById(userId: number) {
+    return await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  }
+
+  async block(userId: number) {
+    if (!(await this.findUserById(userId))) {
       return false;
     }
 
@@ -36,8 +61,8 @@ export default class AdminService {
     return true;
   }
 
-  async unblockUser(userId: number) {
-    if (!await this.userService.getUserById(userId)) {
+  async unblock(userId: number) {
+    if (!(await this.findUserById(userId))) {
       return false;
     }
 
@@ -53,8 +78,8 @@ export default class AdminService {
     return true;
   }
 
-  async promoteToAdmin(userId: number) {
-    if (!await this.userService.getUserById(userId)) {
+  async promote(userId: number) {
+    if (!(await this.findUserById(userId))) {
       return false;
     }
 
@@ -70,8 +95,8 @@ export default class AdminService {
     return true;
   }
 
-  async demoteToUser(userId: number) {
-    if (!await this.userService.getUserById(userId)) {
+  async demote(userId: number) {
+    if (!(await this.findUserById(userId))) {
       return false;
     }
 
@@ -87,8 +112,8 @@ export default class AdminService {
     return true;
   }
 
-  async deleteUser(userId: number) {
-    if (!await this.userService.getUserById(userId)) {
+  async delete(userId: number) {
+    if (!(await this.findUserById(userId))) {
       return false;
     }
 
