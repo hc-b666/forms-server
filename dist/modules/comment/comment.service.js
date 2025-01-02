@@ -54,6 +54,14 @@ class CommentService {
                     authorId,
                     content,
                 },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            email: true,
+                        },
+                    },
+                },
             });
         });
     }
