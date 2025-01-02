@@ -32,7 +32,11 @@ app.use(errors_1.endpointNotFound);
 app.use(errors_1.errorMiddleware);
 const httpServer = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(httpServer, {
-    cors: corsConfig,
+    cors: {
+        credentials: true,
+        origin: '*',
+        methods: ['GET', 'POST'],
+    },
     transports: ['websocket', 'polling'],
     allowEIO3: true,
 });
@@ -71,4 +75,6 @@ io.on('connection', (socket) => {
         }
     }));
 });
-httpServer.listen(3000);
+httpServer.listen(3000, () => {
+    console.log('Server running on port 3000');
+});

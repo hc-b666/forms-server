@@ -1,6 +1,6 @@
 import express from 'express';
 import { Server } from 'socket.io';
-import { createServer, METHODS } from 'http';
+import { createServer } from 'http';
 import cors from 'cors';
 
 import router from './router';
@@ -27,7 +27,11 @@ app.use(errorMiddleware);
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
-  cors: corsConfig,
+  cors: {
+    credentials: true,
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
   transports: ['websocket', 'polling'],
   allowEIO3: true,
 });
@@ -76,4 +80,6 @@ io.on('connection', (socket) => {
 
 });
 
-httpServer.listen(3000);
+httpServer.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
