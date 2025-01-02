@@ -434,7 +434,7 @@ class TemplateService {
     }));
   }
 
-  async findByTagId(tagId: number) {
+  async findByTagId(tagId: number, limit = 20) {
     const templates = await this.prisma.template.findMany({
       include: {
         tags: {
@@ -469,6 +469,7 @@ class TemplateService {
       orderBy: {
         createdAt: 'desc',
       },
+      take: limit,
     });
 
     return templates.map((t) => ({

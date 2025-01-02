@@ -434,8 +434,8 @@ class TemplateService {
             }));
         });
     }
-    findByTagId(tagId) {
-        return __awaiter(this, void 0, void 0, function* () {
+    findByTagId(tagId_1) {
+        return __awaiter(this, arguments, void 0, function* (tagId, limit = 20) {
             const templates = yield this.prisma.template.findMany({
                 include: {
                     tags: {
@@ -470,6 +470,7 @@ class TemplateService {
                 orderBy: {
                     createdAt: 'desc',
                 },
+                take: limit,
             });
             return templates.map((t) => ({
                 id: t.id,
