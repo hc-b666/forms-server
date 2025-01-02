@@ -28,6 +28,8 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: corsConfig,
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
 });
 
 io.on('connection', (socket) => {
