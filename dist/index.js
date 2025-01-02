@@ -22,6 +22,7 @@ const comment_1 = require("./modules/comment");
 const corsConfig = {
     origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
     credentials: true,
+    methods: ['GET', 'POST'],
 };
 const app = (0, express_1.default)();
 app.use(express_1.default.json());

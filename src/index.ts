@@ -1,6 +1,6 @@
 import express from 'express';
 import { Server } from 'socket.io';
-import { createServer } from 'http';
+import { createServer, METHODS } from 'http';
 import cors from 'cors';
 
 import router from './router';
@@ -10,6 +10,7 @@ import { CommentService, commentSchema } from './modules/comment';
 const corsConfig = {
   origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
   credentials: true,
+  methods: ['GET', 'POST'],
 };
 
 const app = express();
