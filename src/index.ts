@@ -7,17 +7,24 @@ import router from './router';
 import { endpointNotFound, errorMiddleware } from './utils/errors';
 import { CommentService, commentSchema } from './modules/comment';
 
-const corsConfig = {
-  origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
-  credentials: true,
-  methods: ['GET', 'POST'],
-};
+// const corsConfig = {
+//   origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
+//   credentials: true,
+//   methods: ['GET', 'POST'],
+// };
 
 const app = express();
 
 app.use(express.json());
 
-app.use(cors(corsConfig));
+app.use(
+  cors({
+    credentials: true,
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 app.use('/api/v1', router);
 
@@ -30,8 +37,10 @@ const io = new Server(httpServer, {
   cors: {
     credentials: true,
     origin: '*',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   },
+  path: '/socket.io',
   transports: ['websocket', 'polling'],
   allowEIO3: true,
 });

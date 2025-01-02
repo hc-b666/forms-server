@@ -19,14 +19,19 @@ const cors_1 = __importDefault(require("cors"));
 const router_1 = __importDefault(require("./router"));
 const errors_1 = require("./utils/errors");
 const comment_1 = require("./modules/comment");
-const corsConfig = {
-    origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
-    credentials: true,
-    methods: ['GET', 'POST'],
-};
+// const corsConfig = {
+//   origin: ['http://localhost:8080', 'https://customizable-forms-client.vercel.app'],
+//   credentials: true,
+//   methods: ['GET', 'POST'],
+// };
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-app.use((0, cors_1.default)(corsConfig));
+app.use((0, cors_1.default)({
+    credentials: true,
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use('/api/v1', router_1.default);
 app.use(errors_1.endpointNotFound);
 app.use(errors_1.errorMiddleware);
@@ -35,8 +40,10 @@ const io = new socket_io_1.Server(httpServer, {
     cors: {
         credentials: true,
         origin: '*',
-        methods: ['GET', 'POST'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
     },
+    path: '/socket.io',
     transports: ['websocket', 'polling'],
     allowEIO3: true,
 });
