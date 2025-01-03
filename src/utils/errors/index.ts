@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import { NextFunction, Request, Response } from 'express';
 import createHttpError, { isHttpError } from 'http-errors';
 
@@ -18,4 +19,15 @@ function errorMiddleware(err: unknown, req: Request, res: Response, next: NextFu
   res.status(status).json({ message: errMessage });
 }
 
-export { endpointNotFound, errorMiddleware };
+
+
+function handleSocketError(socket: Socket, message: string, error?: unknown) {
+  console.error('Socket Error:', message, error);
+  
+  socket.emit('error', {
+    message,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export { endpointNotFound, errorMiddleware, handleSocketError };
