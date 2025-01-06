@@ -1,6 +1,5 @@
 export const corsConfig = {
   credentials: true,
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: 'https://customizable-forms-client.vercel.app',
+  methods: ['GET', 'POST'],
 };
