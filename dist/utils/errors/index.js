@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.endpointNotFound = endpointNotFound;
 exports.errorMiddleware = errorMiddleware;
+exports.handleSocketError = handleSocketError;
 const http_errors_1 = __importStar(require("http-errors"));
 function endpointNotFound(req, res, next) {
     next((0, http_errors_1.default)(404, 'Endpoint is not found'));
@@ -49,3 +50,11 @@ function errorMiddleware(err, req, res, next) {
     }
     res.status(status).json({ message: errMessage });
 }
+function handleSocketError(socket, message, error) {
+    console.error('Socket Error:', message, error);
+    socket.emit('error', {
+        message,
+        timestamp: new Date().toISOString(),
+    });
+}
+;
