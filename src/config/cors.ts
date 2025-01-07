@@ -1,5 +1,5 @@
 export const corsConfig = {
   credentials: true,
-  origin: 'http://localhost:8080',
+  origin: 'https://customizable-forms-client.vercel.app',
   methods: ['GET', 'POST'],
 };
