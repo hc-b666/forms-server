@@ -81,10 +81,11 @@ class TemplateController {
   getPublicByUserId: RequestHandler = async (req, res, next) => {
     try {
       const userId = this.validateId(req.params.userId, 'User id');
+      const page = parseInt(req.query.page as string) || 1;
 
-      const templates = await this.templateService.findPublicTemplatesByUserId(userId);
+      const response = await this.templateService.findPublicTemplatesByUserId(userId, page);
 
-      res.status(200).json(templates);
+      res.status(200).json(response);
     } catch (err) {
       next(err);
     }
@@ -93,10 +94,11 @@ class TemplateController {
   getPrivateByUserId: RequestHandler = async (req, res, next) => {
     try {
       const userId = this.validateId(req.params.userId, 'User id');
+      const page = parseInt(req.query.page as string) || 1;
 
-      const templates = await this.templateService.findPrivateTemplatesByUserId(userId);
+      const response = await this.templateService.findPrivateTemplatesByUserId(userId, page);
 
-      res.status(200).json(templates);
+      res.status(200).json(response);
     } catch (err) {
       next(err);
     }
@@ -105,10 +107,11 @@ class TemplateController {
   getPrivateAccessibleByUserId: RequestHandler = async (req, res, next) => {
     try {
       const userId = this.validateId(req.params.userId, 'User id');
+      const page = parseInt(req.query.page as string) || 1;
 
-      const templates = await this.templateService.findPrivateAccessibleTemplatesByUserId(userId);
+      const response = await this.templateService.findPrivateAccessibleTemplatesByUserId(userId, page);
 
-      res.status(200).json(templates);
+      res.status(200).json(response);
     } catch (err) {
       next(err);
     }

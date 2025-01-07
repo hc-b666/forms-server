@@ -276,7 +276,19 @@ class TemplateService {
       : null;
   }
 
-  async findPublicTemplatesByUserId(userId: number) {
+  async findPublicTemplatesByUserId(userId: number, page = 1, limit = 5) {
+    const skip = (page - 1) * limit;
+    const total = await this.prisma.template.count({
+      where: {
+        createdBy: userId,
+        isPublic: true,
+        deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
+      },
+    });
+
     const templates = await this.prisma.template.findMany({
       include: {
         tags: {
@@ -312,21 +324,43 @@ class TemplateService {
       orderBy: {
         createdAt: 'desc',
       },
+      skip,
+      take: limit,
     });
 
-    return templates.map((template) => ({
-      id: template.id,
-      title: template.title,
-      description: template.description,
-      topic: template.topic,
-      createdAt: template.createdAt,
-      responses: template._count.forms,
-      likes: template._count.likes,
-      tags: template.tags.map((t) => t.tag),
-    }));
+    return {
+      templates: templates.map((template) => ({
+        id: template.id,
+        title: template.title,
+        description: template.description,
+        topic: template.topic,
+        createdAt: template.createdAt,
+        responses: template._count.forms,
+        likes: template._count.likes,
+        tags: template.tags.map((t) => t.tag),
+      })),
+      metadata: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
-  async findPrivateTemplatesByUserId(userId: number) {
+  async findPrivateTemplatesByUserId(userId: number, page = 1, limit = 5) {
+    const skip = (page - 1) * limit;
+
+    const total = await this.prisma.template.count({
+      where: {
+        createdBy: userId,
+        isPublic: false,
+        deletedAt: null,
+        creator: {
+          deletedAt: null,
+        },
+      },
+    });
+
     const templates = await this.prisma.template.findMany({
       where: {
         createdBy: userId,
@@ -362,21 +396,45 @@ class TemplateService {
       orderBy: {
         createdAt: 'desc',
       },
+      skip,
+      take: limit,
     });
 
-    return templates.map((template) => ({
-      id: template.id,
-      title: template.title,
-      description: template.description,
-      topic: template.topic,
-      createdAt: template.createdAt,
-      responses: template._count.forms,
-      likes: template._count.likes,
-      tags: template.tags.map((t) => t.tag),
-    }));
+    return {
+      templates: templates.map((template) => ({
+        id: template.id,
+        title: template.title,
+        description: template.description,
+        topic: template.topic,
+        createdAt: template.createdAt,
+        responses: template._count.forms,
+        likes: template._count.likes,
+        tags: template.tags.map((t) => t.tag),
+      })),
+      metadata: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
-  async findPrivateAccessibleTemplatesByUserId(userId: number) {
+  async findPrivateAccessibleTemplatesByUserId(userId: number, page = 1, limit = 5) {
+    const skip = (page - 1) * limit;
+
+    const total = await this.prisma.accessControl.count({
+      where: {
+        userId,
+        template: {
+          isPublic: false,
+          deletedAt: null,
+        },
+        user: {
+          deletedAt: null,
+        },
+      },
+    });
+
     const accessibles = await this.prisma.accessControl.findMany({
       select: {
         template: {
@@ -420,18 +478,27 @@ class TemplateService {
           createdAt: 'desc',
         },
       },
+      skip,
+      take: limit,
     });
 
-    return accessibles.map((accessible) => ({
-      id: accessible.template.id,
-      title: accessible.template.title,
-      description: accessible.template.description,
-      topic: accessible.template.topic,
-      createdAt: accessible.template.createdAt,
-      responses: accessible.template._count.forms,
-      likes: accessible.template._count.likes,
-      tags: accessible.template.tags.map((t) => t.tag),
-    }));
+    return {
+      templates: accessibles.map((accessible) => ({
+        id: accessible.template.id,
+        title: accessible.template.title,
+        description: accessible.template.description,
+        topic: accessible.template.topic,
+        createdAt: accessible.template.createdAt,
+        responses: accessible.template._count.forms,
+        likes: accessible.template._count.likes,
+        tags: accessible.template.tags.map((t) => t.tag),
+      })),
+      metadata: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findByTagId(tagId: number, limit = 20) {

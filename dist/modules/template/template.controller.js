@@ -69,8 +69,9 @@ class TemplateController {
         this.getPublicByUserId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = this.validateId(req.params.userId, 'User id');
-                const templates = yield this.templateService.findPublicTemplatesByUserId(userId);
-                res.status(200).json(templates);
+                const page = parseInt(req.query.page) || 1;
+                const response = yield this.templateService.findPublicTemplatesByUserId(userId, page);
+                res.status(200).json(response);
             }
             catch (err) {
                 next(err);
@@ -79,8 +80,9 @@ class TemplateController {
         this.getPrivateByUserId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = this.validateId(req.params.userId, 'User id');
-                const templates = yield this.templateService.findPrivateTemplatesByUserId(userId);
-                res.status(200).json(templates);
+                const page = parseInt(req.query.page) || 1;
+                const response = yield this.templateService.findPrivateTemplatesByUserId(userId, page);
+                res.status(200).json(response);
             }
             catch (err) {
                 next(err);
@@ -89,8 +91,9 @@ class TemplateController {
         this.getPrivateAccessibleByUserId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const userId = this.validateId(req.params.userId, 'User id');
-                const templates = yield this.templateService.findPrivateAccessibleTemplatesByUserId(userId);
-                res.status(200).json(templates);
+                const page = parseInt(req.query.page) || 1;
+                const response = yield this.templateService.findPrivateAccessibleTemplatesByUserId(userId, page);
+                res.status(200).json(response);
             }
             catch (err) {
                 next(err);

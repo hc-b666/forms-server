@@ -276,8 +276,19 @@ class TemplateService {
                 : null;
         });
     }
-    findPublicTemplatesByUserId(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
+    findPublicTemplatesByUserId(userId_1) {
+        return __awaiter(this, arguments, void 0, function* (userId, page = 1, limit = 5) {
+            const skip = (page - 1) * limit;
+            const total = yield this.prisma.template.count({
+                where: {
+                    createdBy: userId,
+                    isPublic: true,
+                    deletedAt: null,
+                    creator: {
+                        deletedAt: null,
+                    },
+                },
+            });
             const templates = yield this.prisma.template.findMany({
                 include: {
                     tags: {
@@ -313,21 +324,41 @@ class TemplateService {
                 orderBy: {
                     createdAt: 'desc',
                 },
+                skip,
+                take: limit,
             });
-            return templates.map((template) => ({
-                id: template.id,
-                title: template.title,
-                description: template.description,
-                topic: template.topic,
-                createdAt: template.createdAt,
-                responses: template._count.forms,
-                likes: template._count.likes,
-                tags: template.tags.map((t) => t.tag),
-            }));
+            return {
+                templates: templates.map((template) => ({
+                    id: template.id,
+                    title: template.title,
+                    description: template.description,
+                    topic: template.topic,
+                    createdAt: template.createdAt,
+                    responses: template._count.forms,
+                    likes: template._count.likes,
+                    tags: template.tags.map((t) => t.tag),
+                })),
+                metadata: {
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit),
+                },
+            };
         });
     }
-    findPrivateTemplatesByUserId(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
+    findPrivateTemplatesByUserId(userId_1) {
+        return __awaiter(this, arguments, void 0, function* (userId, page = 1, limit = 5) {
+            const skip = (page - 1) * limit;
+            const total = yield this.prisma.template.count({
+                where: {
+                    createdBy: userId,
+                    isPublic: false,
+                    deletedAt: null,
+                    creator: {
+                        deletedAt: null,
+                    },
+                },
+            });
             const templates = yield this.prisma.template.findMany({
                 where: {
                     createdBy: userId,
@@ -363,21 +394,43 @@ class TemplateService {
                 orderBy: {
                     createdAt: 'desc',
                 },
+                skip,
+                take: limit,
             });
-            return templates.map((template) => ({
-                id: template.id,
-                title: template.title,
-                description: template.description,
-                topic: template.topic,
-                createdAt: template.createdAt,
-                responses: template._count.forms,
-                likes: template._count.likes,
-                tags: template.tags.map((t) => t.tag),
-            }));
+            return {
+                templates: templates.map((template) => ({
+                    id: template.id,
+                    title: template.title,
+                    description: template.description,
+                    topic: template.topic,
+                    createdAt: template.createdAt,
+                    responses: template._count.forms,
+                    likes: template._count.likes,
+                    tags: template.tags.map((t) => t.tag),
+                })),
+                metadata: {
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit),
+                },
+            };
         });
     }
-    findPrivateAccessibleTemplatesByUserId(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
+    findPrivateAccessibleTemplatesByUserId(userId_1) {
+        return __awaiter(this, arguments, void 0, function* (userId, page = 1, limit = 5) {
+            const skip = (page - 1) * limit;
+            const total = yield this.prisma.accessControl.count({
+                where: {
+                    userId,
+                    template: {
+                        isPublic: false,
+                        deletedAt: null,
+                    },
+                    user: {
+                        deletedAt: null,
+                    },
+                },
+            });
             const accessibles = yield this.prisma.accessControl.findMany({
                 select: {
                     template: {
@@ -421,17 +474,26 @@ class TemplateService {
                         createdAt: 'desc',
                     },
                 },
+                skip,
+                take: limit,
             });
-            return accessibles.map((accessible) => ({
-                id: accessible.template.id,
-                title: accessible.template.title,
-                description: accessible.template.description,
-                topic: accessible.template.topic,
-                createdAt: accessible.template.createdAt,
-                responses: accessible.template._count.forms,
-                likes: accessible.template._count.likes,
-                tags: accessible.template.tags.map((t) => t.tag),
-            }));
+            return {
+                templates: accessibles.map((accessible) => ({
+                    id: accessible.template.id,
+                    title: accessible.template.title,
+                    description: accessible.template.description,
+                    topic: accessible.template.topic,
+                    createdAt: accessible.template.createdAt,
+                    responses: accessible.template._count.forms,
+                    likes: accessible.template._count.likes,
+                    tags: accessible.template.tags.map((t) => t.tag),
+                })),
+                metadata: {
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit),
+                },
+            };
         });
     }
     findByTagId(tagId_1) {
