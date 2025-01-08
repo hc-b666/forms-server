@@ -551,6 +551,7 @@ class TemplateService {
         id: t.creator.id,
         email: t.creator.email,
       },
+      imageId: t.imageId,
     }));
   }
 
