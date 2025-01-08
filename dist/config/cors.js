@@ -4,5 +4,5 @@ exports.corsConfig = void 0;
 exports.corsConfig = {
     credentials: true,
     origin: 'https://customizable-forms-client.vercel.app',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 };
