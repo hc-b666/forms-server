@@ -3,13 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSocketServer = void 0;
 const socket_io_1 = require("socket.io");
 const comment_handler_1 = require("./handlers/comment.handler");
+const cors_1 = require("../config/cors");
 const createSocketServer = (httpServer) => {
     const io = new socket_io_1.Server(httpServer, {
-        cors: {
-            credentials: true,
-            origin: 'https://customizable-forms-client.vercel.app',
-            methods: ['GET', 'POST'],
-        },
+        cors: cors_1.corsConfig,
         path: '/socket.io/',
         addTrailingSlash: false,
         transports: ['polling'],
