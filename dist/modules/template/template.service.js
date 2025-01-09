@@ -507,7 +507,14 @@ class TemplateService {
                     },
                     _count: {
                         select: {
-                            forms: true,
+                            forms: {
+                                where: {
+                                    deletedAt: null,
+                                    author: {
+                                        deletedAt: null,
+                                    },
+                                },
+                            },
                         },
                     },
                     creator: {
