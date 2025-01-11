@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "forms-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Forms Api - Course project from iTransition training",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
@@ -9,9 +9,9 @@
     "start": "node dist/index.js",
     "postinstall": "prisma generate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["express", "typescript", "prisma"],
+  "author": "Duche",
+  "license": "MIT",
   "dependencies": {
     "@prisma/client": "^6.0.1",
     "bcrypt": "^5.1.1",
